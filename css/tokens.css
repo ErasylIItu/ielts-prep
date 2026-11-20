@@ -1,0 +1,86 @@
+/* Design tokens. Primary = indigo (focus/study), success = sage green,
+   danger = soft red, warn = honey. Light theme uses a warm paper background. */
+:root {
+  color-scheme: light;
+  --bg: #FAF7F2;
+  --bg-elev: #F3EEE6;
+  --surface: #FFFFFF;
+  --surface-2: #F7F4EE;
+  --border: #E6DFD3;
+  --border-strong: #D3CABB;
+  --text: #1E1B24;
+  --text-muted: #5C5866;
+  --text-faint: #6F6B79;
+
+  --primary: #4146B5;
+  --primary-hover: #363BA0;
+  --on-primary: #FFFFFF;
+  --primary-soft: #ECEBFB;
+  --primary-soft-strong: #C9CBF3;
+  --primary-text: #3A3FA6;
+
+  --success: #2F7A55;
+  --success-soft: #E4F2EA;
+  --danger: #B9453F;
+  --danger-soft: #FBE9E7;
+  --warn: #9A6510;
+  --warn-soft: #FBF0DC;
+
+  --shadow-sm: 0 1px 2px rgba(40, 30, 20, .05), 0 1px 1px rgba(40, 30, 20, .03);
+  --shadow: 0 1px 2px rgba(40, 30, 20, .05), 0 8px 24px -8px rgba(40, 30, 20, .12);
+  --shadow-lg: 0 2px 6px rgba(40, 30, 20, .06), 0 24px 48px -16px rgba(40, 30, 20, .22);
+
+  --font-ui: 'Inter', system-ui, -apple-system, 'Segoe UI', Roboto, sans-serif;
+  --font-read: 'Source Serif 4', 'Iowan Old Style', Georgia, serif;
+
+  --fs-xs: .8125rem;  /* 13 */
+  --fs-s: .9375rem;   /* 15 */
+  --fs-m: 1.0625rem;  /* 17 = base */
+  --fs-l: 1.25rem;
+  --fs-xl: 1.625rem;
+  --fs-xxl: 2.125rem;
+
+  --sp-1: 4px; --sp-2: 8px; --sp-3: 12px; --sp-4: 16px; --sp-5: 24px; --sp-6: 32px; --sp-7: 48px;
+  --radius-s: 12px; --radius: 20px; --radius-l: 26px; --radius-pill: 999px;
+
+  --ease: cubic-bezier(.2, .8, .2, 1);
+  --dur-fast: 140ms; --dur: 240ms; --dur-slow: 600ms;
+
+  --nav-h: 64px;
+  --content-max: 640px;
+  --safe-top: env(safe-area-inset-top, 0px);
+  --safe-bottom: env(safe-area-inset-bottom, 0px);
+  --safe-left: env(safe-area-inset-left, 0px);
+  --safe-right: env(safe-area-inset-right, 0px);
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    color-scheme: dark;
+    --bg: #16151A; --bg-elev: #1B1A20; --surface: #201F26; --surface-2: #27262E;
+    --border: #34323C; --border-strong: #46434F;
+    --text: #EDEBF2; --text-muted: #A9A5B4; --text-faint: #9692A2;
+    --primary: #A3A8F5; --primary-hover: #B7BBF8; --on-primary: #15163A;
+    --primary-soft: #2A2B4A; --primary-soft-strong: #4A4D8A; --primary-text: #B4B8F7;
+    --success: #7FCBA2; --success-soft: #1E3328;
+    --danger: #F0928B; --danger-soft: #3A2221;
+    --warn: #E5B567; --warn-soft: #3A2F1C;
+    --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+    --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -10px rgba(0,0,0,.6);
+    --shadow-lg: 0 2px 6px rgba(0,0,0,.4), 0 24px 48px -16px rgba(0,0,0,.7);
+  }
+}
+:root[data-theme="dark"] {
+  color-scheme: dark;
+  --bg: #16151A; --bg-elev: #1B1A20; --surface: #201F26; --surface-2: #27262E;
+  --border: #34323C; --border-strong: #46434F;
+  --text: #EDEBF2; --text-muted: #A9A5B4; --text-faint: #9692A2;
+  --primary: #A3A8F5; --primary-hover: #B7BBF8; --on-primary: #15163A;
+  --primary-soft: #2A2B4A; --primary-soft-strong: #4A4D8A; --primary-text: #B4B8F7;
+  --success: #7FCBA2; --success-soft: #1E3328;
+  --danger: #F0928B; --danger-soft: #3A2221;
+  --warn: #E5B567; --warn-soft: #3A2F1C;
+  --shadow-sm: 0 1px 2px rgba(0,0,0,.4);
+  --shadow: 0 1px 2px rgba(0,0,0,.4), 0 10px 28px -10px rgba(0,0,0,.6);
+  --shadow-lg: 0 2px 6px rgba(0,0,0,.4), 0 24px 48px -16px rgba(0,0,0,.7);
+}

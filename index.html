@@ -1,0 +1,44 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+  <title>IELTS Prep</title>
+  <meta name="description" content="Personal IELTS Academic trainer: vocabulary, grammar, reading and writing.">
+  <meta name="theme-color" content="#FAF7F2">
+  <meta name="color-scheme" content="light dark">
+
+  <!-- iOS home-screen app -->
+  <meta name="apple-mobile-web-app-capable" content="yes">
+  <meta name="mobile-web-app-capable" content="yes">
+  <meta name="apple-mobile-web-app-status-bar-style" content="default">
+  <meta name="apple-mobile-web-app-title" content="IELTS Prep">
+  <meta name="format-detection" content="telephone=no">
+  <link rel="apple-touch-icon" href="icons/apple-touch-icon-180.png">
+  <link rel="icon" href="icons/icon.svg" type="image/svg+xml">
+  <link rel="manifest" href="manifest.json">
+
+  <link rel="preload" href="fonts/inter-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="stylesheet" href="fonts/fonts.css">
+  <link rel="stylesheet" href="css/tokens.css">
+  <link rel="stylesheet" href="css/app.css">
+  <script>
+    // Apply the saved theme before first paint (no flash).
+    try { var t = localStorage.getItem('ielts.theme'); if (t === 'light' || t === 'dark') document.documentElement.setAttribute('data-theme', t); } catch (e) {}
+  </script>
+  <script type="module" src="js/app.js"></script>
+</head>
+<body>
+  <div class="app">
+    <main id="view" class="view" tabindex="-1">
+      <div class="view__inner" aria-busy="true">
+        <div class="card skel-card"><div class="skel skel--title"></div><div class="skel skel--line" style="width:80%"></div><div class="skel skel--line" style="width:60%"></div></div>
+      </div>
+    </main>
+    <nav class="nav" aria-label="Main">
+      <ul class="nav__list" id="nav"></ul>
+    </nav>
+  </div>
+  <noscript><p style="padding:24px">IELTS Prep needs JavaScript.</p></noscript>
+</body>
+</html>
