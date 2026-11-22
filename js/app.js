@@ -27,6 +27,9 @@ const ROUTES = [
   ['/reading/text/:id', () => import('./screens/reading-text.js')],
   ['/writing', () => import('./screens/writing.js')],
   ['/writing/essay/:id', () => import('./screens/essay.js')],
+  ['/speaking', () => import('./screens/speaking.js')],
+  ['/speaking/session', () => import('./screens/speaking-session.js')],
+  ['/speaking/result/:id', () => import('./screens/speaking-result.js')],
 ];
 
 const NAV = [
@@ -35,6 +38,7 @@ const NAV = [
   ['grammar', 'Grammar', 'grammar'],
   ['reading', 'Reading', 'reading'],
   ['writing', 'Writing', 'writing'],
+  ['speaking', 'Speaking', 'speaking'],
 ];
 
 const view = document.getElementById('view');

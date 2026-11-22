@@ -6,6 +6,7 @@ import { reviewQueue, allWords } from './words.js';
 import { topicOfDay, dueQueue, getTopics, topicErrorCounts } from './grammar/state.js';
 import { settings } from './settings.js';
 import { t } from './i18n.js';
+import { dailyQuestion } from './data/speaking-topics.js';
 
 /** Today's tasks: [{ id, title, sub, href, icon, done }] */
 export async function todayTasks() {
@@ -38,6 +39,11 @@ export async function todayTasks() {
   const writingDays = settings().writingDays || [];
   if (writingDays.includes(new Date().getDay()) || log.writingDone) {
     tasks.push({ id: 'writing', title: t('Write a Task 2 essay'), sub: t('40 minutes · 250+ words · AI feedback'), href: '#/writing', icon: 'writing', done: log.writingDone > 0 });
+  }
+  // Speaking: one question a day (Settings → Study)
+  if (settings().speakingDaily !== false) {
+    const q = dailyQuestion(today());
+    tasks.push({ id: 'speaking', title: t('Speaking: question of the day'), sub: q.question, href: '#/speaking/session?mode=daily', icon: 'mic', done: (log.speakingDone || 0) > 0 });
   }
   if (gq.length || log.grammarReviewsDone) {
     tasks.push({ id: 'greview', title: gq.length ? t('Fix {n} old mistakes', { n: gq.length }) : t('Grammar mistakes reviewed'), sub: t('Spaced review · 2 / 5 / 10 days'), href: '#/grammar/review', icon: 'refresh', done: gq.length === 0 });

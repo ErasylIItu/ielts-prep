@@ -49,7 +49,8 @@ function retryDelayMs(body) {
 /** One request. conn = { mode: 'key', key } (direct to Google) or { mode: 'server', url, code } (via the app's AI server). */
 async function callOnce(model, task, conn) {
   const body = {
-    contents: [{ role: 'user', parts: [{ text: task.user }] }],
+    // task.parts: extra inline data (e.g. recorded audio) sent after the text prompt
+    contents: [{ role: 'user', parts: [{ text: task.user }, ...(task.parts || [])] }],
     generationConfig: {
       responseMimeType: 'application/json',
       responseSchema: task.schema,

@@ -7,7 +7,7 @@ import { syncTopics } from '../grammar/state.js';
 import { t, getLang, setLang, LANGS, locale } from '../i18n.js';
 
 const MODEL_FIELDS = [
-  ['vocab', 'Vocab'], ['grammar', 'Grammar'], ['reading', 'Reading'], ['writing', 'Writing'], ['fallback', 'Fallback (used if a model fails)'],
+  ['vocab', 'Vocab'], ['grammar', 'Grammar'], ['reading', 'Reading'], ['writing', 'Writing'], ['speaking', 'Speaking'], ['fallback', 'Fallback (used if a model fails)'],
 ];
 
 /** Download (or share on iOS) the full JSON backup. */
@@ -145,6 +145,8 @@ export async function render(host, params = {}, query = {}) {
         </div>
         <p class="hint">${t('On these days Today shows a Writing task.')}</p>
       </div>
+      <label class="switch"><span><strong>${t('Speaking: question of the day')}</strong><br><span class="small muted">${t('Show one speaking question on Today every day')}</span></span>
+        <input type="checkbox" data-speak-daily ${s.speakingDaily !== false ? 'checked' : ''}></label>
     </div>
 
     <h2 class="section-title">${t('Appearance')}</h2>
@@ -284,6 +286,7 @@ export async function render(host, params = {}, query = {}) {
   });
   root.querySelector('[data-models]')?.addEventListener('submit', (e) => e.preventDefault());
 
+  root.querySelector('[data-speak-daily]')?.addEventListener('change', async (e) => { await setSetting('speakingDaily', e.target.checked); toast(t('Saved')); });
   root.querySelector('#exam-date').addEventListener('change', async (e) => { await setSetting('examDate', e.target.value); toast(t('Exam date saved')); });
   root.querySelector('#new-limit').addEventListener('change', async (e) => {
     const n = Math.max(0, Math.min(100, parseInt(e.target.value, 10) || 0));

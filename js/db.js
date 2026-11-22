@@ -17,11 +17,11 @@
 import { t } from './i18n.js';
 
 const DB_NAME = 'ielts-prep';
-const DB_VERSION = 1;
+const DB_VERSION = 2; // v2: speaking_attempts
 
 export const STORES = [
   'words', 'reviews', 'grammar_topics', 'grammar_attempts', 'grammar_queue', 'errors',
-  'ai_cache', 'reading_texts', 'reading_attempts', 'writing_attempts', 'daily_log', 'settings',
+  'ai_cache', 'reading_texts', 'reading_attempts', 'writing_attempts', 'speaking_attempts', 'daily_log', 'settings',
 ];
 
 let dbPromise = null;
@@ -43,6 +43,7 @@ function upgrade(db) {
   make('reading_texts', { keyPath: 'id' }, [['date', 'date']]);
   make('reading_attempts', { keyPath: 'id', autoIncrement: true }, [['date', 'date']]);
   make('writing_attempts', { keyPath: 'id', autoIncrement: true }, [['date', 'date']]);
+  make('speaking_attempts', { keyPath: 'id' }, [['date', 'date']]);
   make('daily_log', { keyPath: 'date' });
   make('settings', { keyPath: 'key' });
 }

@@ -9,6 +9,7 @@ export function emptyLog(date) {
     grammarAnswers: 0, grammarCorrect: 0, grammarLessons: 0, grammarReviewsDone: 0,
     readingDone: 0, readingAnswers: 0, readingCorrect: 0,
     writingDone: 0, writingWords: 0,
+    speakingDone: 0, speakingAnswers: 0,
     topicOfDay: null, topicDone: false,
     errorsByType: {},
     plannedFocus: null, // { words: n, topicId } — written by Analytics the day before
@@ -43,4 +44,4 @@ export async function logError(e) {
 }
 
 /** Any activity on this day? (used for the streak) */
-export const isActiveDay = (l) => !!l && (l.wordsReviewed > 0 || l.grammarAnswers > 0 || l.practiceAnswers > 0 || l.wordsAdded > 0 || l.readingAnswers > 0 || l.writingDone > 0);
+export const isActiveDay = (l) => !!l && (l.wordsReviewed > 0 || l.grammarAnswers > 0 || l.practiceAnswers > 0 || l.wordsAdded > 0 || l.readingAnswers > 0 || l.writingDone > 0 || l.speakingDone > 0);

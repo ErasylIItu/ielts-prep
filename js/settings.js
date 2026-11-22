@@ -15,6 +15,7 @@ export const DEFAULTS = {
     grammar: 'gemini-3.5-flash-lite',
     reading: 'gemini-3.5-flash-lite',
     writing: 'gemini-3.5-flash-lite', // change to the model you prefer for essays
+    speaking: 'gemini-3.5-flash-lite', // must accept audio input
     fallback: 'gemini-3.1-flash-lite',
   },
   lastBackup: '',           // ISO timestamp of the last export
@@ -24,6 +25,8 @@ export const DEFAULTS = {
   translationLang: 'ru',    // practice direction EN→ru or EN→kz
   readingDays: [1, 3, 5],   // weekdays with a Reading task on Today (0 = Sunday)
   writingDays: [6],         // weekdays with a Writing (Task 2) task on Today
+  speakingTarget: 6.5,      // target band for Speaking hints and model answers
+  speakingDaily: true,      // "Speaking: question of the day" task on Today
 };
 
 let cache = null;

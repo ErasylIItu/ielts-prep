@@ -2,7 +2,7 @@
 // (network-first with cache fallback, used in stage 3). Gemini requests are never cached here —
 // AI answers are cached in IndexedDB by the app itself.
 // Bump VERSION whenever any file changes so users get the update prompt.
-const VERSION = 'v1.7.0';
+const VERSION = 'v1.8.1';
 const SHELL = `shell-${VERSION}`;
 const TEXTS = 'texts-v1';
 
@@ -24,6 +24,9 @@ const ASSETS = [
   'js/screens/grammar.js', 'js/screens/topic.js', 'js/screens/grammar-review.js', 'js/screens/diagnostic.js', 'js/screens/topic-add.js',
   'js/screens/reading.js', 'js/screens/reading-text.js', 'js/reading/wiki.js', 'js/reading/state.js',
   'js/screens/writing.js', 'js/screens/essay.js', 'js/writing/state.js',
+  'js/screens/speaking.js', 'js/screens/speaking-session.js', 'js/screens/speaking-result.js',
+  'js/speaking/state.js', 'js/speaking/recorder.js', 'js/speaking/voice.js', 'js/speaking/ui.js',
+  'js/data/speaking-topics.js', 'js/data/speaking-phrases.js',
   'js/screens/library.js', 'js/screens/sort.js', 'js/ui/library-sheet.js', 'js/vocab-library.js', 'js/data/wordlist.js', 'js/data/wordlist-extra.js', 'js/data/phrases.js',
 ];
 

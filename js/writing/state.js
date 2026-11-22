@@ -56,6 +56,9 @@ export async function assess(essay, { onStatus, force } = {}) {
     force, onStatus,
   });
   for (const k of ['tr', 'cc', 'lr', 'gra']) fb.criteria[k].band = Math.round(fb.criteria[k].band * 2) / 2;
+  // topicId comes back as free text: keep only real grammar topic ids
+  const valid = new Set(CATALOG.map((x) => x.id));
+  for (const e of fb.errors) if (!valid.has(e.topicId)) e.topicId = 'none';
   const firstTime = essay.status !== 'assessed';
   essay.feedback = fb;
   essay.words = words;

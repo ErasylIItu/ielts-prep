@@ -351,7 +351,6 @@ const BAND = S('OBJECT', { properties: { band: S('NUMBER'), commentRu: STR, comm
  * topics: [{id, title}] from the grammar catalog so each mistake can be linked to a topic for spaced review.
  */
 export function essayFeedback({ prompt, essay, words, topics }) {
-  const ids = [...topics.map((x) => x.id), 'none'];
   return {
     system: `You are an experienced IELTS Writing examiner and teacher. Use the official public IELTS Task 2 band descriptors
 (Task Response, Coherence and Cohesion, Lexical Resource, Grammatical Range and Accuracy). Be honest and consistent; do not inflate bands.
@@ -386,7 +385,7 @@ ${topics.map((x) => `${x.id}: ${x.title}`).join('\n')}`,
           items: S('OBJECT', {
             properties: {
               original: STR, correction: STR, explanationRu: STR, explanationKz: STR,
-              category: S('STRING', { enum: ERROR_CATEGORIES }), topicId: S('STRING', { enum: ids }),
+              category: S('STRING', { enum: ERROR_CATEGORIES }), topicId: STR, // one of the ids below or "none" (checked in the app)
             },
             required: ['original', 'correction', 'explanationRu', 'explanationKz', 'category', 'topicId'],
           }),
@@ -412,5 +411,133 @@ ${topics.map((x) => `${x.id}: ${x.title}`).join('\n')}`,
       return null;
     },
     temperature: 0.3,
+  };
+}
+
+// ---------- Speaking ----------
+
+const SPEAK_CRIT = S('OBJECT', {
+  properties: { fc: S('NUMBER'), lr: S('NUMBER'), gra: S('NUMBER'), p: S('NUMBER') },
+  required: ['fc', 'lr', 'gra', 'p'],
+});
+
+/**
+ * One spoken answer (audio) → transcript + feedback.
+ * The model listens to the recording itself, so it can judge pronunciation, pauses and fillers.
+ * metrics: measured on the device (duration, speaking time, long pauses).
+ */
+export function speakingAnswer({ part, question, cue, targetBand, metrics, mode, topics }) {
+  return {
+    system: `You are an experienced IELTS Speaking examiner and a supportive speaking coach.
+Judge with the public IELTS Speaking band descriptors: Fluency and Coherence, Lexical Resource,
+Grammatical Range and Accuracy, Pronunciation. Be honest; do not inflate bands. Judge only what you hear.
+${LEARNER}\n${STYLE}`,
+    user: `IELTS Speaking Part ${part}. ${cue ? `Cue card: "${cue.task}" — points: ${cue.points.join('; ')}.` : `Examiner's question: "${question}"`}
+Candidate's target band: ${targetBand}.
+Measured on the device: answer length ${metrics.durationSec} s, speaking time ${metrics.speakingSec} s, ${metrics.pauses} pauses longer than 1.5 s (longest ${metrics.longestPauseSec} s).
+
+Listen to the attached recording of the candidate's answer and return:
+- "transcript": exactly what the candidate said, word for word, INCLUDING fillers (um, uh, er, like, you know) and repetitions. Do NOT correct grammar. Write "" if there is no speech.
+- "onTopic": true if the answer addresses the question.
+- "fillers": filler words/sounds used and how many times.
+- "pronunciation": up to 5 words or sounds that were unclear or wrongly stressed: "word", "issueRu" (what was wrong, e.g. stress on the wrong syllable, the "th" sound), "tipRu" (how to say it). Use [] if pronunciation was clear.
+- "errors": up to 6 most important grammar or word-choice mistakes: "original" (exact words from the transcript), "correction", "explanationRu", "explanationKz", "category", "topicId" (grammar topic from the list, or "none").
+- "upgrades": up to 4 simple words/phrases from the answer with natural B2–C1 alternatives ("original", "better", "level" B2/C1, "noteRu").
+- "estimate": a rough band for THIS answer only for fc, lr, gra, p (0–9, steps of 0.5).
+- "feedbackRu" / "feedbackKz": 2–3 short sentences: what was good and the single most important thing to improve.
+- "tipRu": one concrete tip for the next answer (for example: add a reason with "because" and an example).
+- "modelAnswer": ${mode === 'practice' ? `a natural model answer to the same question at about band ${Math.min(9, targetBand + 0.5)}, ${part === 2 ? '170–220 words, covering every point on the card' : part === 3 ? '70–110 words' : '35–60 words'}, sounding like spoken English (contractions, simple linking).` : '"" (empty string).'}
+
+Grammar topics (id: title):
+${topics.map((x) => `${x.id}: ${x.title}`).join('\n')}`,
+    schema: S('OBJECT', {
+      properties: {
+        transcript: STR,
+        onTopic: S('BOOLEAN'),
+        fillers: S('ARRAY', { items: S('OBJECT', { properties: { word: STR, count: S('INTEGER') }, required: ['word', 'count'] }) }),
+        pronunciation: S('ARRAY', { items: S('OBJECT', { properties: { word: STR, issueRu: STR, tipRu: STR }, required: ['word', 'issueRu', 'tipRu'] }) }),
+        errors: S('ARRAY', { items: S('OBJECT', {
+          properties: { original: STR, correction: STR, explanationRu: STR, explanationKz: STR, category: S('STRING', { enum: ERROR_CATEGORIES }), topicId: STR },
+          required: ['original', 'correction', 'explanationRu', 'explanationKz', 'category', 'topicId'] }) }),
+        upgrades: S('ARRAY', { items: S('OBJECT', { properties: { original: STR, better: STR, level: S('STRING', { enum: ['B2', 'C1'] }), noteRu: STR }, required: ['original', 'better', 'level', 'noteRu'] }) }),
+        estimate: SPEAK_CRIT,
+        feedbackRu: STR, feedbackKz: STR, tipRu: STR, modelAnswer: STR,
+      },
+      required: ['transcript', 'onTopic', 'fillers', 'pronunciation', 'errors', 'upgrades', 'estimate', 'feedbackRu', 'feedbackKz', 'tipRu', 'modelAnswer'],
+    }),
+    check: (d) => {
+      for (const k of ['fc', 'lr', 'gra', 'p']) if (d.estimate[k] < 0 || d.estimate[k] > 9) return 'estimate out of range';
+      return null;
+    },
+    temperature: 0.2,
+  };
+}
+
+/** Whole test (text only): transcripts + per-answer notes → final bands for the four criteria. */
+export function speakingReport({ answers, targetBand }) {
+  return {
+    system: `You are an experienced IELTS Speaking examiner. Use the public IELTS Speaking band descriptors.
+Base the bands on ALL answers together, the way a real examiner does. Be honest and consistent.
+${LEARNER}\n${STYLE}`,
+    user: `Candidate's target band: ${targetBand}.
+Below are the candidate's answers with the transcripts (fillers kept) and notes from listening to each recording.
+
+${answers.map((a, i) => `#${i + 1} Part ${a.part} — Q: ${a.question}
+Transcript: ${a.transcript || '(no speech)'}
+Notes: ${a.notes}`).join('\n\n')}
+
+Return:
+- "criteria": "fc", "lr", "gra", "p" — each with "band" (0–9, steps of 0.5), "commentRu" and "commentKz" (2–3 short sentences: why this band and what to do for +0.5).
+- "summaryRu": 2 short sentences overall.
+- "strengthsRu": 2–3 short strengths.
+- "prioritiesRu": the 3 most important things to practise next, each one short and concrete.`,
+    schema: S('OBJECT', {
+      properties: {
+        criteria: S('OBJECT', { properties: { fc: BAND, lr: BAND, gra: BAND, p: BAND }, required: ['fc', 'lr', 'gra', 'p'] }),
+        summaryRu: STR, strengthsRu: STR_ARR, prioritiesRu: STR_ARR,
+      },
+      required: ['criteria', 'summaryRu', 'strengthsRu', 'prioritiesRu'],
+    }),
+    check: (d) => {
+      for (const k of ['fc', 'lr', 'gra', 'p']) { const b = d.criteria[k].band; if (b < 0 || b > 9) return 'band out of range'; }
+      return null;
+    },
+    temperature: 0.2,
+  };
+}
+
+/** Practice helper for Part 2: a short plan and topic vocabulary for a cue card. */
+export function speakingPlan({ cue, targetBand }) {
+  return {
+    system: `You are an IELTS Speaking coach.\n${LEARNER}\n${STYLE}`,
+    user: `Cue card: "${cue.task}" — points: ${cue.points.join('; ')}.
+Help the candidate (target band ${targetBand}) prepare in 1 minute:
+- "plan": 4 very short notes in English (2–6 words each), one per point on the card, with a concrete idea they could use.
+- "vocabulary": 6 useful words or phrases (B2–C1) for this card, with "ru" translation.
+- "tipRu": one short tip for this card.`,
+    schema: S('OBJECT', {
+      properties: {
+        plan: STR_ARR,
+        vocabulary: S('ARRAY', { items: S('OBJECT', { properties: { en: STR, ru: STR }, required: ['en', 'ru'] }) }),
+        tipRu: STR,
+      },
+      required: ['plan', 'vocabulary', 'tipRu'],
+    }),
+    temperature: 0.6,
+  };
+}
+
+/** Practice helper: useful topic vocabulary shown next to the questions. */
+export function speakingVocab({ topicTitle, questions }) {
+  return {
+    system: `You are an IELTS Speaking coach.\n${LEARNER}\n${STYLE}`,
+    user: `Speaking topic: "${topicTitle}". Example questions: ${questions.slice(0, 3).join(' | ')}
+Give 8 natural words or short phrases (B1+ to C1) a candidate could use when talking about this topic,
+each with a Russian translation "ru".`,
+    schema: S('OBJECT', {
+      properties: { vocabulary: S('ARRAY', { items: S('OBJECT', { properties: { en: STR, ru: STR }, required: ['en', 'ru'] }) }) },
+      required: ['vocabulary'],
+    }),
+    temperature: 0.5,
   };
 }

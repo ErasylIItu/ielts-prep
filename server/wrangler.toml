@@ -6,10 +6,10 @@ main = "worker.js"
 compatibility_date = "2025-06-01"
 
 [vars]
-ALLOWED_ORIGINS = "https://erasyliitu.github.io,http://localhost:8080,http://localhost:8081,http://127.0.0.1:5500"
+ALLOWED_ORIGINS = "https://erasyliitu.github.io,http://localhost:8080,http://localhost:8081,http://127.0.0.1:5500,http://localhost:8095"
 ALLOWED_MODELS = "gemini-"
 RATE_LIMIT_PER_MIN = "20"
-MAX_BODY_BYTES = "120000"
+MAX_BODY_BYTES = "12000000"
 
 # Cloudflare's built-in rate limiter (shared across instances): 20 requests / 60 s per IP.
 [[ratelimits]]
