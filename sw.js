@@ -2,7 +2,7 @@
 // (network-first with cache fallback, used in stage 3). Gemini requests are never cached here —
 // AI answers are cached in IndexedDB by the app itself.
 // Bump VERSION whenever any file changes so users get the update prompt.
-const VERSION = 'v1.6.2';
+const VERSION = 'v1.6.3';
 const SHELL = `shell-${VERSION}`;
 const TEXTS = 'texts-v1';
 
@@ -28,7 +28,9 @@ const ASSETS = [
 ];
 
 self.addEventListener('install', (event) => {
-  event.waitUntil(caches.open(SHELL).then((c) => c.addAll(ASSETS)));
+  // cache: 'reload' bypasses the browser's HTTP cache (GitHub Pages allows 10 minutes),
+  // so a new version never stores stale copies of the files.
+  event.waitUntil(caches.open(SHELL).then((c) => c.addAll(ASSETS.map((u) => new Request(u, { cache: 'reload' })))));
 });
 
 self.addEventListener('activate', (event) => {
