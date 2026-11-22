@@ -131,6 +131,9 @@ img, svg { display: block; }
 .btn--block { display: flex; width: 100%; }
 .icon-btn {
   display: inline-grid; place-items: center; width: 44px; height: 44px; border-radius: 50%;
+  /* iOS Safari adds side padding to <button> → circles became ovals; also never shrink in flex rows */
+  padding: 0; margin: 0; flex: 0 0 44px; aspect-ratio: 1; box-sizing: border-box;
+  -webkit-appearance: none; appearance: none;
   border: 0; background: transparent; color: var(--text); cursor: pointer; text-decoration: none;
   transition: background var(--dur-fast);
 }
@@ -459,11 +462,18 @@ mark.quote { background: color-mix(in srgb, var(--warn) 28%, transparent); color
 .lib-row__main { flex: 1; min-width: 0; text-align: left; background: none; border: 0; padding: 4px 0; min-height: 44px; cursor: pointer; color: inherit; display: flex; flex-direction: column; justify-content: center; }
 .lib-star { color: var(--warn); display: inline-block; vertical-align: -1px; }
 .lib-star .ico { display: inline; }
-.lib-btn { border: 1.5px solid var(--border-strong); }
+.lib-btn { border: 1.5px solid var(--border-strong); line-height: 0; font-size: 0; }
+.lib-btn .ico { display: block; margin: auto; }
 .lib-btn--know { color: var(--success); }
 .lib-btn--learn { color: var(--primary-text); }
-.lib-btn--know:hover { background: var(--success-soft); }
-.lib-btn--learn:hover { background: var(--primary-soft); }
+.lib-btn--know:active { background: var(--success-soft); }
+.lib-btn--learn:active { background: var(--primary-soft); }
+@media (hover: hover) {
+  .lib-btn--know:hover { background: var(--success-soft); }
+  .lib-btn--learn:hover { background: var(--primary-soft); }
+}
+/* Badges in rows must not squeeze either */
+.lib-row .badge { flex-shrink: 0; }
 .sort-card .flash__front { justify-content: center; }
 .sort-actions { display: grid; grid-template-columns: 1fr auto 1fr; gap: var(--sp-2); margin-top: var(--sp-4); align-items: center; }
 .center-text { text-align: center; }
