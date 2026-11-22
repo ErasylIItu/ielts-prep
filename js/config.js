@@ -4,4 +4,4 @@
 //   'https://ielts-prep-ai.<your-subdomain>.workers.dev'
 // When it is set, everyone can use the AI features without their own Gemini key:
 // the Worker adds the owner's key on the server side. Leave '' to require a personal key.
-export const AI_PROXY_URL = '';
+export const AI_PROXY_URL = 'https://ielts-prep-ai.prep-aapp.workers.dev';
