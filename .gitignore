@@ -13,3 +13,4 @@ ielts-prep-backup-*.json
 # Wrangler (Cloudflare CLI) local cache
 .wrangler/
 server/.wrangler/
+audio/examiner-sample/

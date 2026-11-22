@@ -7,7 +7,8 @@ import { html, mount, ic, header, emptyState, renderError, skeleton, confirmDial
 import { buildTest, buildPractice, dailyQuestion } from '../data/speaking-topics.js';
 import { PHRASES, NUDGES, phraseList, phraseKey } from '../data/speaking-phrases.js';
 import { startRecording, getMic, releaseMic } from '../speaking/recorder.js';
-import { speak, stopSpeaking, canSpeak } from '../speaking/voice.js';
+import { speak, stopSpeaking, canSpeak, unlockAudio } from '../speaking/voice.js';
+import { LINES, part1Intro, part3Intro } from '../data/examiner-lines.js';
 import { analyzeAnswer, AnalysisQueue, finalReport, saveAttempt, getTarget, getPlan, getTopicVocab } from '../speaking/state.js';
 import { answerFeedback } from '../speaking/ui.js';
 import { topicById } from '../data/speaking-topics.js';
@@ -126,10 +127,11 @@ export async function render(host, _p, query) {
   };
 
   const examinerLine = (item) => {
-    if (!item.intro) return item.question;
-    if (item.part === 1) return `Let's talk about ${item.topicTitle.toLowerCase()}. ${item.question}`;
-    if (item.part === 3) return `We've been talking about ${topic?.kind === 'p23' || mode === 'test' ? item.topicTitle.toLowerCase() : 'this topic'}. Now I'd like to ask you some more general questions. ${item.question}`;
-    return item.question;
+    // Separate sentences, so each one can use its recorded clip.
+    if (!item.intro) return [item.question];
+    if (item.part === 1) return [part1Intro(item.topicTitle), item.question];
+    if (item.part === 3) return [part3Intro(item.topicTitle), item.question];
+    return [item.question];
   };
 
   const ask = async (item) => {
@@ -172,7 +174,7 @@ export async function render(host, _p, query) {
         </div>
         ${practiceLike ? phrasePanel(2) : ''}
       </div>`);
-    if (canSpeak()) speak("Now I'm going to give you a topic, and I'd like you to talk about it for one to two minutes. You have one minute to think about what you're going to say. You can make some notes if you wish.", { rate: 1 });
+    if (canSpeak()) speak(LINES.part2Intro, { rate: 1 });
     const tick = every(() => {
       left--;
       const el = root.querySelector('[data-left]');
@@ -188,7 +190,7 @@ export async function render(host, _p, query) {
     if (destroyed || items[idx] !== item || rec) return;
     part2Notes = root.querySelector('#notes')?.value || '';
     stopSpeaking();
-    if (canSpeak()) await speak('All right. Remember, you have one to two minutes for this. Please start speaking now.', { rate: 1 });
+    if (canSpeak()) await speak(LINES.part2Start, { rate: 1 });
     if (destroyed || items[idx] !== item) return;
     startAnswer(item);
   };
@@ -252,7 +254,7 @@ export async function render(host, _p, query) {
     rec = null;
     clearTimers();
     if (destroyed) return;
-    if (auto && item.part === 2 && canSpeak()) speak('Thank you.');
+    if (auto && item.part === 2 && canSpeak()) speak(LINES.thanks);
     const audioUrl = URL.createObjectURL(r.blob);
     urls.push(audioUrl);
     const answer = { ...item, targetBand: target, durationSec: r.durationSec, rec: r, audioUrl, analysis: null };
@@ -351,6 +353,7 @@ export async function render(host, _p, query) {
     switch (b.dataset.act) {
       case 'mic': testMic(); break;
       case 'start':
+        unlockAudio();
         try { await getMic(); } catch (err) { showMicError(err, root.querySelector('[data-mic-msg]')); return; }
         micTest?.cancel(); micTest = null;
         started = true; next(); break;

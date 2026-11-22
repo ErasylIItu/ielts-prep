@@ -74,6 +74,8 @@ export default {
   'Weak': 'Слабая',
   'OK': 'Норм',
   'Got it': 'Понятно',
+  'Natural': 'Живой голос',
+  'Natural: a recorded human-like voice ({name}). British and American: the voice built into your device.': 'Живой голос: заранее записанный реалистичный голос ({name}). Британский и американский: голос, встроенный в устройство.',
 
   // ---------- Gemini errors ----------
   'API key was rejected': 'Ключ API отклонён',

@@ -2,9 +2,12 @@
 // (network-first with cache fallback, used in stage 3). Gemini requests are never cached here —
 // AI answers are cached in IndexedDB by the app itself.
 // Bump VERSION whenever any file changes so users get the update prompt.
-const VERSION = 'v1.8.2';
+const VERSION = 'v1.9.0';
 const SHELL = `shell-${VERSION}`;
 const TEXTS = 'texts-v1';
+// Recorded examiner clips: kept across app versions, downloaded when first played.
+// Change the name if the clips are ever re-recorded with another voice.
+const VOICE = 'voice-v1';
 
 const ASSETS = [
   './', 'index.html', 'manifest.json',
@@ -26,7 +29,7 @@ const ASSETS = [
   'js/screens/writing.js', 'js/screens/essay.js', 'js/writing/state.js',
   'js/screens/speaking.js', 'js/screens/speaking-session.js', 'js/screens/speaking-result.js',
   'js/speaking/state.js', 'js/speaking/recorder.js', 'js/speaking/voice.js', 'js/speaking/ui.js',
-  'js/data/speaking-topics.js', 'js/data/speaking-phrases.js',
+  'js/data/speaking-topics.js', 'js/data/speaking-phrases.js', 'js/data/examiner-lines.js', 'js/data/examiner-audio.js',
   'js/screens/library.js', 'js/screens/sort.js', 'js/ui/library-sheet.js', 'js/vocab-library.js', 'js/data/wordlist.js', 'js/data/wordlist-extra.js', 'js/data/phrases.js',
 ];
 
@@ -73,6 +76,19 @@ self.addEventListener('fetch', (event) => {
   }
 
   if (url.origin !== self.location.origin) return;
+
+  // Examiner clips: cache first. Always fetch and store the whole file (audio may ask for byte ranges).
+  if (url.pathname.includes('/audio/examiner/')) {
+    event.respondWith((async () => {
+      const cache = await caches.open(VOICE);
+      const hit = await cache.match(url.href);
+      if (hit) return hit;
+      const res = await fetch(url.href);
+      if (res.ok && res.status === 200) cache.put(url.href, res.clone());
+      return res;
+    })());
+    return;
+  }
 
   // Navigations → the cached app shell (hash routing means one HTML file).
   if (req.mode === 'navigate') {

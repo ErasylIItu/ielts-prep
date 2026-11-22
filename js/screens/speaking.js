@@ -3,7 +3,8 @@
 import { html, mount, ic, header, skeleton, emptyState, toast } from '../ui/components.js';
 import { PART1_TOPICS, PART23_TOPICS, dailyQuestion } from '../data/speaking-topics.js';
 import { listAttempts, topicProgress, TARGETS, getTarget, setTarget } from '../speaking/state.js';
-import { getAccent, setAccent, speak, canSpeak } from '../speaking/voice.js';
+import { LINES } from '../data/examiner-lines.js';
+import { hasRecorded, recordedName, getAccent, setAccent, speak, canSpeak } from '../speaking/voice.js';
 import { formatDay, today } from '../dates.js';
 import { inFlow, flowLabel } from '../flow.js';
 import { t } from '../i18n.js';
@@ -81,12 +82,14 @@ export async function render(host, _p, query) {
     <h2 class="section-title">${t('Examiner voice')}</h2>
     <div class="row gap-s wrap">
       <div class="seg grow" role="group" aria-label="${t('Examiner voice')}">
+        ${hasRecorded() ? html`<button data-accent="pro" aria-pressed="${getAccent() === 'pro'}">${t('Natural')}</button>` : ''}
         <button data-accent="en-GB" aria-pressed="${getAccent() === 'en-GB'}">${t('British')}</button>
         <button data-accent="en-US" aria-pressed="${getAccent() === 'en-US'}">${t('American')}</button>
       </div>
       <button class="btn btn--ghost btn--sm" data-act="voice" ${canSpeak() ? '' : 'disabled'}>${ic('play', 16)} ${t('Listen')}</button>
     </div>
     ${canSpeak() ? '' : html`<p class="hint">${t('This browser has no speech voice: questions will be shown as text.')}</p>`}
+    ${hasRecorded() ? html`<p class="hint">${t('Natural: a recorded human-like voice ({name}). British and American: the voice built into your device.', { name: recordedName() })}</p>` : ''}
 
     <h2 class="section-title">${t('History')}</h2>
     ${attempts.length ? html`<div class="list">${attempts.slice(0, 30).map((a) => html`
@@ -107,10 +110,10 @@ export async function render(host, _p, query) {
     if (!b) return;
     if (b.dataset.target) { target = Number(b.dataset.target); await setTarget(target); toast(t('Target band: {b}', { b: b.dataset.target })); draw(); return; }
     if (b.dataset.tab) { tab = b.dataset.tab; lsSet(TAB_KEY, tab); draw(); return; }
-    if (b.dataset.accent) { setAccent(b.dataset.accent); draw(); speak('Good morning. Can you tell me your full name, please?'); return; }
+    if (b.dataset.accent) { setAccent(b.dataset.accent); draw(); speak(LINES.greeting); return; }
     switch (b.dataset.act) {
       case 'notice': lsSet(NOTICE_KEY, '1'); draw(); break;
-      case 'voice': speak('Good morning. Can you tell me your full name, please?'); break;
+      case 'voice': speak(LINES.greeting); break;
       case 'to-topics': e.preventDefault(); root.querySelector('#speak-topics')?.scrollIntoView({ behavior: 'smooth', block: 'start' }); break;
     }
   });
