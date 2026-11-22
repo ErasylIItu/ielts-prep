@@ -2,7 +2,7 @@
 import { html, mount, ic, header, ring, animateRings, skeleton, toast, confetti } from '../ui/components.js';
 import { todayTasks, streak, examCountdown, planText, planTomorrow } from '../planner.js';
 import { startFlow, cancelFlow } from '../flow.js';
-import { settings, setSetting, getApiKey } from '../settings.js';
+import { settings, setSetting, aiAvailable } from '../settings.js';
 import { formatDay, today, diffDays, dayKey } from '../dates.js';
 import { count } from '../db.js';
 import { downloadBackup } from './settings.js';
@@ -35,7 +35,7 @@ export async function render(host, _p, query) {
   mount(root, html`
     ${header(greeting(), { actions, subtitle: formatDay(today(), { weekday: 'long', day: 'numeric', month: 'long' }) })}
     <div class="stack">
-      ${!getApiKey() ? html`<a class="banner" href="#/settings" style="text-decoration:none;background:var(--primary-soft)">${ic('key', 20)}<span class="grow">${tr('Add your Gemini API key in Settings to use AI features.')}</span>${ic('chevronRight', 18)}</a>` : ''}
+      ${!aiAvailable() ? html`<a class="banner" href="#/settings" style="text-decoration:none;background:var(--primary-soft)">${ic('key', 20)}<span class="grow">${tr('AI is not set up yet. Open Settings to connect it.')}</span>${ic('chevronRight', 18)}</a>` : ''}
       ${showBackup ? html`<div class="banner" role="status">${ic('database', 20)}
         <span class="grow">${s.lastBackup ? tr('Last backup was {n} days ago.', { n: daysSinceBackup }) : tr('You have no backup yet.')} ${tr('Export one — iOS can clear app data.')}</span>
         <button class="btn btn--sm btn--ghost" data-act="backup">${tr('Export')}</button>

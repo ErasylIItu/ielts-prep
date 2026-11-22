@@ -1,0 +1,18 @@
+# Cloudflare Worker config for the IELTS Prep AI proxy.
+# Deploy:  npx wrangler deploy        (from this "server" folder)
+# Secret:  npx wrangler secret put GEMINI_KEY
+name = "ielts-prep-ai"
+main = "worker.js"
+compatibility_date = "2025-06-01"
+
+[vars]
+ALLOWED_ORIGINS = "https://erasyliitu.github.io,http://localhost:8080,http://localhost:8081,http://127.0.0.1:5500"
+ALLOWED_MODELS = "gemini-"
+RATE_LIMIT_PER_MIN = "20"
+MAX_BODY_BYTES = "120000"
+
+# Cloudflare's built-in rate limiter (shared across instances): 20 requests / 60 s per IP.
+[[ratelimits]]
+name = "RATE_LIMITER"
+namespace_id = "1001"
+simple = { limit = 20, period = 60 }

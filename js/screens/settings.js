@@ -1,6 +1,6 @@
 // Settings: language, Gemini key & models, exam date, daily limits, theme, backup, storage.
 import { html, mount, ic, header, toast, confirmDialog, renderError } from '../ui/components.js';
-import { settings, setSetting, getApiKey, setApiKey, removeApiKey, getTheme, setTheme, DEFAULTS } from '../settings.js';
+import { settings, setSetting, getApiKey, setApiKey, removeApiKey, getTheme, setTheme, DEFAULTS, aiConnection, getProxyUrl, setProxyUrl, getAccessCode, setAccessCode } from '../settings.js';
 import { exportAll, importAll, wipeAll } from '../db.js';
 import { testKey } from '../ai/gemini.js';
 import { syncTopics } from '../grammar/state.js';
@@ -38,6 +38,8 @@ export async function render(host) {
   const rerender = () => render(host);
   const s = settings();
   const key = getApiKey();
+  const conn = aiConnection();
+  const proxy = getProxyUrl();
   let persisted = null, estimate = null;
   try { persisted = await navigator.storage?.persisted?.(); estimate = await navigator.storage?.estimate?.(); } catch { /* ignore */ }
   const theme = getTheme();
@@ -54,23 +56,56 @@ export async function render(host) {
     </div>
     <p class="hint">${t('AI explanations and translations are always in Russian and Kazakh.')}</p>
 
-    <h2 class="section-title">Gemini AI</h2>
+    <h2 class="section-title">${t('AI')}</h2>
     <div class="card stack">
-      <div class="field">
-        <label class="label" for="api-key">${t('API key')}</label>
-        <div class="input-wrap">
-          <input id="api-key" class="input" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"
-            placeholder="${key ? t('Key saved — paste to replace') : t('Paste key from aistudio.google.com')}" style="padding-left:14px;padding-right:48px">
-          <button class="icon-btn" type="button" data-act="toggle-key" aria-label="${t('Show key')}">${ic('eye', 20)}</button>
+      <div class="ai-status ai-status--${conn ? 'ok' : 'off'}">
+        ${ic(conn ? 'check' : 'alert', 20)}
+        <div>
+          <p class="strong">${conn?.mode === 'server' ? t('AI works through the app server') : conn?.mode === 'key' ? t('AI uses your own Gemini key') : t('AI is not connected')}</p>
+          <p class="small muted">${conn?.mode === 'server' ? t('No API key needed. Requests go through the app owner’s server.') : conn?.mode === 'key' ? t('Requests go directly to Google with your key.') : t('Add your own key below, or ask the app owner for the AI server.')}</p>
         </div>
-        <p class="hint">${t('Stored only on this device (localStorage). Never included in backups.')} ${key ? html`<strong>${t('Key is saved.')}</strong>` : ''}</p>
       </div>
       <div class="row gap-s wrap">
-        <button class="btn btn--primary btn--sm" data-act="save-key">${ic('key', 18)} ${t('Save key')}</button>
-        <button class="btn btn--ghost btn--sm" data-act="test-key" ${key ? '' : 'disabled'}>${t('Test key')}</button>
-        ${key ? html`<button class="btn btn--ghost btn--sm" data-act="remove-key">${t('Remove')}</button>` : ''}
+        <button class="btn btn--ghost btn--sm" data-act="test-key" ${conn ? '' : 'disabled'}>${ic('sparkle', 18)} ${t('Test AI')}</button>
       </div>
       <div data-key-status></div>
+
+      ${proxy ? html`<div class="field">
+        <label class="label" for="access-code">${t('Access code')} <span class="muted">${t('(only if the app owner gave you one)')}</span></label>
+        <div class="row gap-s">
+          <input id="access-code" class="input grow" autocomplete="off" autocapitalize="off" spellcheck="false" value="${getAccessCode()}">
+          <button class="btn btn--ghost btn--sm" data-act="save-code">${t('Save')}</button>
+        </div>
+      </div>` : ''}
+
+      <details class="settings-more" ${!proxy && !key ? 'open' : ''}>
+        <summary>${t('Own Gemini key (optional)')}</summary>
+        <div class="stack mt-m">
+          <div class="field">
+            <label class="label" for="api-key">${t('API key')}</label>
+            <div class="input-wrap">
+              <input id="api-key" class="input" type="password" autocomplete="off" autocapitalize="off" spellcheck="false"
+                placeholder="${key ? t('Key saved — paste to replace') : t('Paste key from aistudio.google.com')}" style="padding-left:14px;padding-right:48px">
+              <button class="icon-btn" type="button" data-act="toggle-key" aria-label="${t('Show key')}">${ic('eye', 20)}</button>
+            </div>
+            <p class="hint">${t('Used instead of the server, for example when the server limit is reached. Stored only on this device, never in backups.')} ${key ? html`<strong>${t('Key is saved.')}</strong>` : ''}</p>
+          </div>
+          <div class="row gap-s wrap">
+            <button class="btn btn--primary btn--sm" data-act="save-key">${ic('key', 18)} ${t('Save key')}</button>
+            ${key ? html`<button class="btn btn--ghost btn--sm" data-act="remove-key">${t('Remove')}</button>` : ''}
+          </div>
+        </div>
+      </details>
+
+      <details class="settings-more">
+        <summary>${t('AI server address (advanced)')}</summary>
+        <div class="stack-s mt-m">
+          <label class="sr-only" for="proxy-url">${t('AI server address (advanced)')}</label>
+          <input id="proxy-url" class="input" type="url" inputmode="url" autocomplete="off" autocapitalize="off" spellcheck="false" value="${getProxyUrl()}" placeholder="https://ielts-prep-ai.….workers.dev">
+          <p class="hint">${t('Leave it as it is unless you run your own server (see the server folder in the project).')}</p>
+          <div class="row gap-s"><button class="btn btn--ghost btn--sm" data-act="save-proxy">${t('Save')}</button></div>
+        </div>
+      </details>
     </div>
 
     <h2 class="section-title">${t('Models')}</h2>
@@ -184,6 +219,20 @@ export async function render(host) {
         rerender();
         break;
       }
+      case 'save-code':
+        setAccessCode(root.querySelector('#access-code').value);
+        toast(t('Access code saved'));
+        rerender();
+        break;
+      case 'save-proxy': {
+        const v = root.querySelector('#proxy-url').value.trim();
+        const okUrl = !v || /^https:\/\/[^\s/]+/.test(v) || /^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?/.test(v);
+        if (!okUrl) { toast(t('The address must start with https://'), { type: 'error' }); return; }
+        setProxyUrl(v);
+        toast(t('AI server address saved'));
+        rerender();
+        break;
+      }
       case 'remove-key':
         if (await confirmDialog(t('The key will be removed from this device.'), { ok: t('Remove'), danger: true })) {
           removeApiKey(); toast(t('Key removed')); rerender();
@@ -193,8 +242,8 @@ export async function render(host) {
         btn.disabled = true;
         mount(status, html`<p class="small muted">${t('Testing…')}</p>`);
         try {
-          await testKey(settings().models.vocab || DEFAULTS.models.vocab);
-          mount(status, html`<p class="small" style="color:var(--success)">${ic('check', 16)} ${t('The key works with {m}.', { m: settings().models.vocab })}</p>`);
+          const mode = await testKey(settings().models.vocab || DEFAULTS.models.vocab);
+          mount(status, html`<p class="small" style="color:var(--success)">${ic('check', 16)} ${mode === 'server' ? t('The AI server works with {m}.', { m: settings().models.vocab }) : t('The key works with {m}.', { m: settings().models.vocab })}</p>`);
         } catch (err) {
           renderError(status, err, () => btn.click());
         }

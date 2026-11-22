@@ -5,7 +5,7 @@ import { relativeDay } from '../dates.js';
 import { t } from '../i18n.js';
 import { library } from '../data/wordlist.js';
 import { fillPendingCards, scheduleFill } from '../vocab-library.js';
-import { getApiKey } from '../settings.js';
+import { aiAvailable } from '../settings.js';
 
 const FILTER_KEY = 'ielts.vocabFilter';
 const loadFilter = () => { try { return { list: 'all', cefr: '', essay: false, q: '', ...JSON.parse(localStorage.getItem(FILTER_KEY) || '{}') }; } catch { return { list: 'all', cefr: '', essay: false, q: '' }; } };
@@ -60,7 +60,7 @@ export async function render(root) {
       ${ic('chevronRight', 20)}
     </a>
     ${pending ? html`<div class="banner mt-m" data-pending>${ic('sparkle', 18)}<span class="grow" data-pending-text>${t('{n} new words wait for AI translations and examples.', { n: pending })}</span>
-      ${getApiKey() ? html`<button class="btn btn--sm btn--ghost" data-fill>${t('Fill now')}</button>` : html`<a class="btn btn--sm btn--ghost" href="#/settings">${t('Add key')}</a>`}</div>` : ''}
+      ${aiAvailable() ? html`<button class="btn btn--sm btn--ghost" data-fill>${t('Fill now')}</button>` : html`<a class="btn btn--sm btn--ghost" href="#/settings">${t('Set up AI')}</a>`}</div>` : ''}
 
     <div class="stack mt-l">
       <div class="input-wrap">
@@ -114,7 +114,7 @@ export async function render(root) {
     if (r.error) { txt.textContent = r.error.message; e.currentTarget.disabled = false; return; }
     render(root);
   });
-  if (pending && getApiKey()) scheduleFill();
+  if (pending && aiAvailable()) scheduleFill();
 
   root.querySelector('#vsearch').addEventListener('input', (e) => { f.q = e.target.value; saveFilter(f); draw(); });
   root.querySelector('.seg').addEventListener('click', (e) => {

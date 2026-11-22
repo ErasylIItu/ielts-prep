@@ -6,7 +6,7 @@ import { today, addDays } from './dates.js';
 import { updateLog } from './log.js';
 import { ai, hashKey } from './ai/gemini.js';
 import { wordCard, wordBatch } from './prompts.js';
-import { getApiKey } from './settings.js';
+import { aiAvailable } from './settings.js';
 import { put } from './db.js';
 
 export const KNOWN_INTERVAL_DAYS = 60;
@@ -101,7 +101,7 @@ let timer = null;
 export function scheduleFill() {
   clearTimeout(timer);
   timer = setTimeout(() => {
-    if (getApiKey() && navigator.onLine !== false) fillPendingCards();
+    if (aiAvailable() && navigator.onLine !== false) fillPendingCards();
   }, 2500);
 }
 

@@ -2,7 +2,7 @@
 // or swipe left = "don't know" (Again) / right = "know" (Good).
 import { html, mount, ic, header, emptyState, cefrBadge, confetti, doneMark, skeleton } from '../ui/components.js';
 import { fillPendingCards } from '../vocab-library.js';
-import { getApiKey } from '../settings.js';
+import { aiAvailable } from '../settings.js';
 import { attachSwipe } from '../ui/swipe.js';
 import { reviewQueue, gradeWord, translation } from '../words.js';
 import { GRADES, previewIntervals } from '../srs.js';
@@ -14,7 +14,7 @@ export async function render(root, _p, query) {
   let { due, fresh } = await reviewQueue();
   // Library words added with "Learn" may still have no translation → fill them first (one batch request per 10).
   const empty = [...due, ...fresh].filter((w) => w.needsCard).length;
-  if (empty && getApiKey() && navigator.onLine !== false) {
+  if (empty && aiAvailable() && navigator.onLine !== false) {
     mount(root, html`${header(t('Review'))}<p class="small muted" data-msg>${t('Preparing {n} new cards with AI…', { n: empty })}</p>${skeleton(3)}`);
     await fillPendingCards({ onProgress: (d, n) => { const m = root.querySelector('[data-msg]'); if (m) m.textContent = t('Filling cards: {a} / {b}…', { a: d, b: n }); } });
     ({ due, fresh } = await reviewQueue());

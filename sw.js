@@ -2,7 +2,7 @@
 // (network-first with cache fallback, used in stage 3). Gemini requests are never cached here —
 // AI answers are cached in IndexedDB by the app itself.
 // Bump VERSION whenever any file changes so users get the update prompt.
-const VERSION = 'v1.5.2';
+const VERSION = 'v1.6.0';
 const SHELL = `shell-${VERSION}`;
 const TEXTS = 'texts-v1';
 
@@ -13,7 +13,7 @@ const ASSETS = [
   'fonts/inter-latin.woff2', 'fonts/inter-latin-ext.woff2', 'fonts/inter-cyrillic.woff2', 'fonts/inter-cyrillic-ext.woff2',
   'fonts/source-serif-4-latin.woff2', 'fonts/source-serif-4-latin-ext.woff2', 'fonts/source-serif-4-cyrillic.woff2', 'fonts/source-serif-4-cyrillic-ext.woff2',
   'icons/icon.svg', 'icons/apple-touch-icon-180.png', 'icons/icon-192.png', 'icons/icon-512.png', 'icons/maskable-512.png',
-  'js/app.js', 'js/db.js', 'js/dates.js', 'js/settings.js', 'js/log.js', 'js/words.js', 'js/srs.js',
+  'js/app.js', 'js/config.js', 'js/db.js', 'js/dates.js', 'js/settings.js', 'js/log.js', 'js/words.js', 'js/srs.js',
   'js/planner.js', 'js/flow.js', 'js/prompts.js', 'js/grammar-topics.js', 'js/i18n.js', 'js/i18n-ru.js',
   'js/ai/gemini.js', 'js/ai/validate.js',
   'js/grammar/state.js',

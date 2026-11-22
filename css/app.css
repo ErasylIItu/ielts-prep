@@ -480,3 +480,16 @@ mark.quote { background: color-mix(in srgb, var(--warn) 28%, transparent); color
 .chips__sep { flex-shrink: 0; width: 1px; align-self: stretch; margin: 6px 2px; background: var(--border-strong); }
 .chip--topic[aria-pressed="true"] { background: var(--warn-soft); color: var(--warn); }
 .lib-sentinel { height: 1px; }
+
+/* ============ AI connection (Settings) ============ */
+.ai-status { display: flex; gap: var(--sp-3); align-items: flex-start; padding: var(--sp-3) var(--sp-4); border-radius: var(--radius-s); }
+.ai-status .ico { margin-top: 2px; flex-shrink: 0; }
+.ai-status--ok { background: var(--success-soft); }
+.ai-status--ok .ico { color: var(--success); }
+.ai-status--off { background: var(--warn-soft); }
+.ai-status--off .ico { color: var(--warn); }
+.settings-more { border-top: 1px solid var(--border); padding-top: var(--sp-3); }
+.settings-more > summary { cursor: pointer; min-height: 44px; display: flex; align-items: center; font-weight: 600; color: var(--primary-text); list-style: none; }
+.settings-more > summary::-webkit-details-marker { display: none; }
+.settings-more > summary::after { content: '▾'; margin-left: 8px; transition: transform var(--dur); }
+.settings-more[open] > summary::after { transform: rotate(180deg); }

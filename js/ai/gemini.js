@@ -5,7 +5,7 @@
 //  - 429 → wait (server's retryDelay, capped) and retry; 404/5xx → fallback model.
 //  - Validated responses are cached in IndexedDB (ai_cache) by cacheKey.
 import { get, put } from '../db.js';
-import { getApiKey, settings } from '../settings.js';
+import { aiConnection, settings } from '../settings.js';
 import { validate } from './validate.js';
 import { t } from '../i18n.js';
 
@@ -21,7 +21,9 @@ export class AIError extends Error {
 }
 
 const E = {
-  noKey: () => new AIError('no-key', t('Add your Gemini API key'), t('Open Settings and paste your key from Google AI Studio.')),
+  noKey: () => new AIError('no-key', t('AI is not set up'), t('Add your own Gemini key in Settings, or ask the app owner to connect the AI server.')),
+  denied: (m) => new AIError('server-denied', t('The AI server refused the request'), m && /access code/i.test(m) ? t('Enter the correct access code in Settings.') : t('This website is not allowed on the AI server. Ask the app owner.')),
+  serverSetup: (m) => new AIError('server', t('AI server is not ready'), /api key/i.test(m || '') ? t('The API key on the server is invalid. The app owner needs to update it.') : t('The app owner has not finished setting up the AI server yet.')),
   badKey: () => new AIError('bad-key', t('API key was rejected'), t('Check the key in Settings — it may be wrong, expired or restricted.')),
   offline: () => new AIError('offline', t('No internet connection'), t('AI features need internet. Your saved words and topics still work offline.')),
   rate: (daily) => new AIError('rate-limit', t('AI limit reached'), daily
@@ -44,7 +46,8 @@ function retryDelayMs(body) {
   return Number.isFinite(s) ? s * 1000 : 0;
 }
 
-async function callOnce(model, task, key) {
+/** One request. conn = { mode: 'key', key } (direct to Google) or { mode: 'server', url, code } (via the app's AI server). */
+async function callOnce(model, task, conn) {
   const body = {
     contents: [{ role: 'user', parts: [{ text: task.user }] }],
     generationConfig: {
@@ -59,15 +62,20 @@ async function callOnce(model, task, key) {
   const timer = setTimeout(() => ctrl.abort(), TIMEOUT_MS);
   let res;
   try {
-    res = await fetch(`${ENDPOINT}${encodeURIComponent(model)}:generateContent`, {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json', 'x-goog-api-key': key },
-      body: JSON.stringify(body),
-      signal: ctrl.signal,
-    });
+    const direct = conn.mode === 'key';
+    const url = direct
+      ? `${ENDPOINT}${encodeURIComponent(model)}:generateContent`
+      : `${conn.url}/v1beta/models/${encodeURIComponent(model)}:generateContent`;
+    const headers = { 'Content-Type': 'application/json' };
+    if (direct) headers['x-goog-api-key'] = conn.key;
+    else if (conn.code) headers['x-access-code'] = conn.code;
+    res = await fetch(url, { method: 'POST', headers, body: JSON.stringify(body), signal: ctrl.signal });
   } catch (err) {
     if (err.name === 'AbortError') throw E.timeout();
-    throw navigator.onLine === false ? E.offline() : new AIError('network', t('Network error'), t('Could not reach Gemini. Check your connection and press Retry.'));
+    if (navigator.onLine === false) throw E.offline();
+    throw conn.mode === 'server'
+      ? new AIError('network', t('Network error'), t('Could not reach the AI server. Check your connection and press Retry.'))
+      : new AIError('network', t('Network error'), t('Could not reach Gemini. Check your connection and press Retry.'));
   } finally {
     clearTimeout(timer);
   }
@@ -112,8 +120,8 @@ export async function ai({ section, task, cacheKey, force = false, onStatus }) {
     const hit = await get('ai_cache', fullKey);
     if (hit) return hit.data;
   }
-  const key = getApiKey();
-  if (!key) throw E.noKey();
+  const conn = aiConnection();
+  if (!conn) throw E.noKey();
   if (navigator.onLine === false) throw E.offline();
 
   const s = settings();
@@ -124,7 +132,7 @@ export async function ai({ section, task, cacheKey, force = false, onStatus }) {
   for (;;) {
     const model = models[modelIdx];
     try {
-      const text = await callOnce(model, task, key);
+      const text = await callOnce(model, task, conn);
       let data;
       try {
         data = parseJSON(text);
@@ -144,7 +152,9 @@ export async function ai({ section, task, cacheKey, force = false, onStatus }) {
       // Classify HTTP errors from callOnce
       const { http, msg, status, json } = err;
       if (http === 400 && /api key|API_KEY/i.test(msg + status)) throw E.badKey();
-      if (http === 401 || http === 403) throw E.badKey();
+      if (http === 401 || http === 403) throw conn.mode === 'server' ? E.denied(msg) : E.badKey();
+      // The AI server itself is not set up (no key / invalid key on the server) → no point retrying
+      if (conn.mode === 'server' && http === 503 && /configured|api key/i.test(msg)) throw E.serverSetup(msg);
       if (http === 429) {
         const daily = /per ?day|PerDay|daily/i.test(msg);
         const wait = retryDelayMs(json) || 8000 * (rateRetries + 1);
@@ -171,21 +181,22 @@ export async function ai({ section, task, cacheKey, force = false, onStatus }) {
   }
 }
 
-/** Tiny request used by Settings → "Test key". */
+/** Tiny request used by Settings → "Test AI" (works for both a personal key and the AI server). */
 export async function testKey(model) {
-  const key = getApiKey();
-  if (!key) throw E.noKey();
+  const conn = aiConnection();
+  if (!conn) throw E.noKey();
   try {
     await callOnce(model, {
       user: 'Reply with {"ok": true}',
       schema: { type: 'OBJECT', properties: { ok: { type: 'BOOLEAN' } }, required: ['ok'] },
       temperature: 0,
-    }, key);
-    return true;
+    }, conn);
+    return conn.mode;
   } catch (err) {
     if (err instanceof AIError) throw err;
     if (err.http === 400 && /api key/i.test(err.msg)) throw E.badKey();
-    if (err.http === 401 || err.http === 403) throw E.badKey();
+    if (err.http === 401 || err.http === 403) throw conn.mode === 'server' ? E.denied(err.msg) : E.badKey();
+    if (conn.mode === 'server' && err.http === 503) throw E.serverSetup(err.msg);
     if (err.http === 404) throw E.model(model);
     if (err.http === 429) throw E.rate(false);
     throw new AIError('request', t('Request failed'), err.msg || `HTTP ${err.http}`);

@@ -2,6 +2,7 @@
 //   - the Gemini API key  → localStorage only (never exported, never logged)
 //   - the colour theme    → localStorage (read before first paint to avoid a flash)
 import { all, put } from './db.js';
+import { AI_PROXY_URL } from './config.js';
 
 const KEY_STORAGE = 'ielts.geminiKey';
 const THEME_STORAGE = 'ielts.theme';
@@ -53,6 +54,27 @@ export async function setSetting(key, value) {
 export const getApiKey = () => { try { return localStorage.getItem(KEY_STORAGE) || ''; } catch { return ''; } };
 export const setApiKey = (k) => { localStorage.setItem(KEY_STORAGE, k.trim()); };
 export const removeApiKey = () => { localStorage.removeItem(KEY_STORAGE); };
+
+// ----- AI server (Cloudflare Worker from /server) -----
+// Order: a personal key (if the user saved one) → the app's AI server → nothing.
+const PROXY_STORAGE = 'ielts.proxyUrl';
+const CODE_STORAGE = 'ielts.accessCode';
+const ls = (k) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } };
+/** Server address: the user's override from Settings, otherwise the built-in one from config.js. */
+export const getProxyUrl = () => (ls(PROXY_STORAGE) || AI_PROXY_URL).replace(/\/+$/, '');
+export const setProxyUrl = (u) => { u.trim() ? localStorage.setItem(PROXY_STORAGE, u.trim()) : localStorage.removeItem(PROXY_STORAGE); };
+export const getAccessCode = () => ls(CODE_STORAGE);
+export const setAccessCode = (c) => { c.trim() ? localStorage.setItem(CODE_STORAGE, c.trim()) : localStorage.removeItem(CODE_STORAGE); };
+
+/** How AI requests are sent right now, or null when AI is not available. */
+export function aiConnection() {
+  const key = getApiKey();
+  if (key) return { mode: 'key', key };
+  const url = getProxyUrl();
+  if (url) return { mode: 'server', url, code: getAccessCode() };
+  return null;
+}
+export const aiAvailable = () => !!aiConnection();
 
 // ----- Theme -----
 export const getTheme = () => { try { return localStorage.getItem(THEME_STORAGE) || 'system'; } catch { return 'system'; } };
