@@ -9,3 +9,7 @@ Thumbs.db
 
 # Personal data backups exported from the app (never commit them)
 ielts-prep-backup-*.json
+
+# Wrangler (Cloudflare CLI) local cache
+.wrangler/
+server/.wrangler/
