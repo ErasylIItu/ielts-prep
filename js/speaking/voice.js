@@ -1,23 +1,16 @@
 // Examiner voice.
-//   'pro'          recorded clips (ElevenLabs, made once by tools/eleven-voices.mjs), stored in audio/examiner/
-//   'en-GB'/'en-US' the browser's built-in speech synthesis (free, works offline on most devices)
+//   recorded clips (ElevenLabs, made once by tools/eleven-voices.mjs), stored in audio/examiner/;
+//   the browser's built-in British voice when there are no clips
 // A sentence without a recorded clip falls back to the browser voice; with no voice at all
 // the question is simply shown as text.
 import { RECORDED, VOICE_NAME } from '../data/examiner-audio.js';
 import { lineId } from '../data/examiner-lines.js';
 
-const VOICE_KEY = 'ielts.examinerVoice'; // 'pro' | 'en-GB' | 'en-US'
-
 export const hasRecorded = () => RECORDED.size > 0;
 export const recordedName = () => VOICE_NAME || 'ElevenLabs';
 
-export const getAccent = () => {
-  let v = null;
-  try { v = localStorage.getItem(VOICE_KEY); } catch { /* ignore */ }
-  if (v === 'pro' && !hasRecorded()) v = null;
-  return v || (hasRecorded() ? 'pro' : 'en-GB');
-};
-export const setAccent = (a) => { try { localStorage.setItem(VOICE_KEY, a); } catch { /* ignore */ } };
+// Recorded voice when the clips exist; otherwise the device's British voice.
+export const getAccent = () => (hasRecorded() ? 'pro' : 'en-GB');
 
 const canSynth = () => 'speechSynthesis' in window && typeof SpeechSynthesisUtterance !== 'undefined';
 export const canSpeak = () => (getAccent() === 'pro' && hasRecorded()) || canSynth();
