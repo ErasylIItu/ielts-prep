@@ -56,7 +56,7 @@ export const setApiKey = (k) => { localStorage.setItem(KEY_STORAGE, k.trim()); }
 export const removeApiKey = () => { localStorage.removeItem(KEY_STORAGE); };
 
 // ----- AI server (Cloudflare Worker from /server) -----
-// Order: a personal key (if the user saved one) → the app's AI server → nothing.
+// Order: the app's AI server (same for every user) → a personal key (only when there is no server) → nothing.
 const PROXY_STORAGE = 'ielts.proxyUrl';
 const CODE_STORAGE = 'ielts.accessCode';
 const ls = (k) => { try { return localStorage.getItem(k) || ''; } catch { return ''; } };
@@ -68,10 +68,10 @@ export const setAccessCode = (c) => { c.trim() ? localStorage.setItem(CODE_STORA
 
 /** How AI requests are sent right now, or null when AI is not available. */
 export function aiConnection() {
-  const key = getApiKey();
-  if (key) return { mode: 'key', key };
   const url = getProxyUrl();
   if (url) return { mode: 'server', url, code: getAccessCode() };
+  const key = getApiKey();
+  if (key) return { mode: 'key', key };
   return null;
 }
 export const aiAvailable = () => !!aiConnection();

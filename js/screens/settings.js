@@ -31,11 +31,13 @@ export async function downloadBackup() {
   return true;
 }
 
-export async function render(host) {
+export async function render(host, params = {}, query = {}) {
   // Fresh container on every (re)render so listeners never stack up.
   const root = document.createElement('div');
   host.replaceChildren(root);
-  const rerender = () => render(host);
+  const rerender = () => render(host, params, query);
+  // AI connection and model settings are for the app owner only: #/settings?owner=1
+  const owner = query.owner === '1';
   const s = settings();
   const key = getApiKey();
   const conn = aiConnection();
@@ -56,7 +58,9 @@ export async function render(host) {
     </div>
     <p class="hint">${t('AI explanations and translations are always in Russian and Kazakh.')}</p>
 
-    <h2 class="section-title">${t('AI')}</h2>
+    ${owner ? html`
+    <!-- Owner-only block (open Settings with #/settings?owner=1). Regular users never see AI setup. -->
+    <h2 class="section-title">${t('AI')} · ${t('owner')}</h2>
     <div class="card stack">
       <div class="ai-status ai-status--${conn ? 'ok' : 'off'}">
         ${ic(conn ? 'check' : 'alert', 20)}
@@ -88,7 +92,7 @@ export async function render(host) {
                 placeholder="${key ? t('Key saved — paste to replace') : t('Paste key from aistudio.google.com')}" style="padding-left:14px;padding-right:48px">
               <button class="icon-btn" type="button" data-act="toggle-key" aria-label="${t('Show key')}">${ic('eye', 20)}</button>
             </div>
-            <p class="hint">${t('Used instead of the server, for example when the server limit is reached. Stored only on this device, never in backups.')} ${key ? html`<strong>${t('Key is saved.')}</strong>` : ''}</p>
+            <p class="hint">${t('Used only when the app has no AI server. Stored only on this device, never in backups.')} ${key ? html`<strong>${t('Key is saved.')}</strong>` : ''}</p>
           </div>
           <div class="row gap-s wrap">
             <button class="btn btn--primary btn--sm" data-act="save-key">${ic('key', 18)} ${t('Save key')}</button>
@@ -115,7 +119,7 @@ export async function render(host) {
         <input id="m-${id}" name="${id}" class="input" autocomplete="off" autocapitalize="off" spellcheck="false" value="${s.models[id] || ''}" placeholder="${DEFAULTS.models[id]}">
       </div>`)}
       <p class="hint">${t('Model names from Google AI Studio, e.g. gemini-3.5-flash-lite. Saved automatically.')}</p>
-    </form>
+    </form>` : ''}
 
     <h2 class="section-title">${t('Study')}</h2>
     <div class="card">
@@ -273,12 +277,12 @@ export async function render(host) {
   });
 
   // Models: save on change
-  root.querySelector('[data-models]').addEventListener('change', async (e) => {
+  root.querySelector('[data-models]')?.addEventListener('change', async (e) => {
     const models = { ...settings().models, [e.target.name]: e.target.value.trim() || DEFAULTS.models[e.target.name] };
     await setSetting('models', models);
     toast(t('Model saved'));
   });
-  root.querySelector('[data-models]').addEventListener('submit', (e) => e.preventDefault());
+  root.querySelector('[data-models]')?.addEventListener('submit', (e) => e.preventDefault());
 
   root.querySelector('#exam-date').addEventListener('change', async (e) => { await setSetting('examDate', e.target.value); toast(t('Exam date saved')); });
   root.querySelector('#new-limit').addEventListener('change', async (e) => {
