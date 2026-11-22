@@ -21,7 +21,7 @@ export async function render(host, _p, query) {
   mount(root, html`${header(t('Speaking'))}${skeleton(3)}${skeleton(4)}`);
   const [attempts, progress] = await Promise.all([listAttempts(), topicProgress()]);
   let tab = ls(TAB_KEY, 'p1');
-  const target = getTarget();
+  let target = getTarget();
   const daily = dailyQuestion(today());
   const doneDaily = attempts.some((a) => a.kind === 'daily' && a.date === today());
 
@@ -105,7 +105,7 @@ export async function render(host, _p, query) {
   root.addEventListener('click', async (e) => {
     const b = e.target.closest('[data-act], [data-target], [data-tab], [data-accent]');
     if (!b) return;
-    if (b.dataset.target) { await setTarget(Number(b.dataset.target)); toast(t('Target band: {b}', { b: b.dataset.target })); draw(); return; }
+    if (b.dataset.target) { target = Number(b.dataset.target); await setTarget(target); toast(t('Target band: {b}', { b: b.dataset.target })); draw(); return; }
     if (b.dataset.tab) { tab = b.dataset.tab; lsSet(TAB_KEY, tab); draw(); return; }
     if (b.dataset.accent) { setAccent(b.dataset.accent); draw(); speak('Good morning. Can you tell me your full name, please?'); return; }
     switch (b.dataset.act) {
