@@ -148,7 +148,7 @@ export async function render(host, _p, query) {
       mount(listEl, emptyState({ iconName: p.filter === 'notmine' && !p.q ? 'check' : 'search', title: p.filter === 'notmine' && !p.q ? t('All words of this level are sorted') : t('No words found'), text: p.q ? '' : t('Try another filter or level.') }));
       return;
     }
-    mount(listEl, html`<div class="list"></div><div class="lib-sentinel" data-sentinel aria-hidden="true"></div>`);
+    mount(listEl, html`<div class="list lib-list"></div><div class="lib-sentinel" data-sentinel aria-hidden="true"></div>`);
     while (rendered < target && rendered < current.length) appendOne();
     if (rendered < current.length) {
       observer = new IntersectionObserver((entries) => { if (entries.some((x) => x.isIntersecting)) appendChunk(); }, { root: scroller, rootMargin: '0px 0px 1000px 0px' });

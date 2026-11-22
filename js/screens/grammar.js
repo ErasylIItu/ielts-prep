@@ -60,7 +60,7 @@ export async function render(host) {
       ${Object.entries(STATUS_LABEL).map(([k, l]) => html`<button class="chip" data-status="${k}" aria-pressed="${f.status === k}">${tr(l)}</button>`)}
     </div>
     <p class="small muted mt-s" data-edit-hint hidden>${tr('Reorder mode: arrows change the study order. Topic of the day follows this order (topics with many mistakes come first).')}</p>
-    <div class="mt-m" data-catalog></div>`);
+    <div class="mt-m catalog" data-catalog></div>`);
 
   const cat = root.querySelector('[data-catalog]');
   const draw = () => {

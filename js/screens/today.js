@@ -34,14 +34,14 @@ export async function render(host, _p, query) {
 
   mount(root, html`
     ${header(greeting(), { actions, subtitle: formatDay(today(), { weekday: 'long', day: 'numeric', month: 'long' }) })}
-    <div class="stack">
+    <div class="stack today-layout">
       ${!aiAvailable() ? html`<a class="banner" href="#/settings" style="text-decoration:none;background:var(--primary-soft)">${ic('key', 20)}<span class="grow">${tr('AI is not set up yet. Open Settings to connect it.')}</span>${ic('chevronRight', 18)}</a>` : ''}
       ${showBackup ? html`<div class="banner" role="status">${ic('database', 20)}
         <span class="grow">${s.lastBackup ? tr('Last backup was {n} days ago.', { n: daysSinceBackup }) : tr('You have no backup yet.')} ${tr('Export one — iOS can clear app data.')}</span>
         <button class="btn btn--sm btn--ghost" data-act="backup">${tr('Export')}</button>
         <button class="icon-btn" data-act="snooze" aria-label="${tr('Remind me tomorrow')}">${ic('x', 18)}</button></div>` : ''}
 
-      <section class="card card--hero">
+      <section class="card card--hero today-main">
         <div class="today-hero">
           ${ring(progress, { size: 116, stroke: 11, label: `${doneN}/${tasks.length}`, sub: tr('tasks done') })}
           <div class="stat-pills">
@@ -55,10 +55,10 @@ export async function render(host, _p, query) {
           : tasks.length ? html`<p class="focus-note mt-m" style="color:var(--success)">${ic('check', 18)} <span>${tr('All tasks are done for today. Great work!')}</span></p>` : ''}
       </section>
 
-      ${log.plannedFocus ? html`<p class="focus-note card card--flat">${ic('target', 18)}
+      ${log.plannedFocus ? html`<p class="focus-note card card--flat today-plan">${ic('target', 18)}
         <span><strong>${tr('Plan for today:')}</strong> ${planText(log.plannedFocus)}</span></p>` : ''}
 
-      <section aria-labelledby="tasks-h">
+      <section class="today-tasks" aria-labelledby="tasks-h">
         <h2 class="section-title" id="tasks-h">${tr('Today\'s tasks')}</h2>
         <div class="list">${tasks.map((t) => html`
           <a class="task ${t.done ? 'is-done' : ''}" href="${t.href}">
@@ -69,7 +69,7 @@ export async function render(host, _p, query) {
         </div>
       </section>
 
-      <a class="card card-link row gap-m" href="#/analytics">
+      <a class="card card-link row gap-m today-analytics" href="#/analytics">
         <span class="task__icon">${ic('chart')}</span>
         <span class="grow"><span class="strong" style="display:block">${tr('Analytics')}</span><span class="small muted">${tr('Mistakes, weak spots, plan for tomorrow')}</span></span>
         ${ic('chevronRight', 20)}

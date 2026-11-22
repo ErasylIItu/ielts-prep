@@ -493,3 +493,75 @@ mark.quote { background: color-mix(in srgb, var(--warn) 28%, transparent); color
 .settings-more > summary::-webkit-details-marker { display: none; }
 .settings-more > summary::after { content: '▾'; margin-left: 8px; transition: transform var(--dur); }
 .settings-more[open] > summary::after { transform: rotate(180deg); }
+
+/* ===================================================================
+   Laptop / desktop layout (≥1024px): sidebar instead of the bottom bar,
+   wider content and two-column screens. Phones are not affected.
+   =================================================================== */
+.sidebar { display: none; }
+
+@media (min-width: 1024px) {
+  :root { --content-max: 1040px; --sidebar-w: 248px; }
+  .app { flex-direction: row; }
+  .nav { display: none; }
+
+  .sidebar {
+    display: flex; flex-direction: column; flex-shrink: 0;
+    width: var(--sidebar-w); height: 100dvh; overflow-y: auto;
+    padding: calc(var(--safe-top) + 22px) 14px 22px;
+    background: var(--bg-elev); border-right: 1px solid var(--border);
+  }
+  .sidebar__brand {
+    display: flex; align-items: center; gap: 12px; padding: 6px 10px 18px;
+    color: var(--text); text-decoration: none; font-weight: 750; font-size: 1.125rem; letter-spacing: -.01em;
+  }
+  .sidebar__brand img { border-radius: 10px; }
+  .sidebar__list { list-style: none; margin: 0; padding: 0; display: grid; gap: 2px; }
+  .sidebar__link {
+    display: flex; align-items: center; gap: 12px; min-height: 44px; padding: 0 14px;
+    border-radius: 12px; color: var(--text-muted); text-decoration: none; font-weight: 600;
+    transition: background var(--dur-fast), color var(--dur-fast);
+  }
+  .sidebar__link:hover { background: var(--surface-2); color: var(--text); }
+  .sidebar__link[aria-current="page"] { background: var(--primary-soft); color: var(--primary-text); }
+  .sidebar__sep { height: 1px; margin: 10px 10px; background: var(--border); }
+
+  .view { padding: calc(var(--safe-top) + 32px) 44px 56px; }
+  .view__inner--wide { max-width: 1240px; }
+  .toast-host { bottom: 24px; left: var(--sidebar-w); }
+  .screen-title { font-size: 2rem; }
+
+  /* Today: hero, plan and analytics on the left, tasks on the right */
+  .today-layout { display: grid; grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr); gap: 20px; align-items: start; grid-auto-flow: row dense; }
+  .today-layout > * + * { margin-top: 0; }
+  .today-layout > .banner { grid-column: 1 / -1; }
+  .today-main, .today-plan, .today-analytics { grid-column: 1; }
+  .today-tasks { grid-column: 2; grid-row: span 3; }
+  .today-tasks .section-title { margin-top: 0; }
+  /* Sidebar already has Analytics and Settings */
+  .today-analytics, .screen-head__actions a[href="#/analytics"], .screen-head__actions a[href="#/settings"] { display: none; }
+
+  /* Grammar catalog in two columns */
+  .catalog { columns: 2; column-gap: 16px; }
+  .catalog details.group { break-inside: avoid; margin: 0 0 14px; }
+  .catalog details.group + details.group { margin-top: 0; }
+
+  /* Word lists in two columns */
+  .lib-list, .words-list { display: grid; grid-template-columns: 1fr 1fr; }
+  .lib-list > .list-row, .words-list > .list-row { border-top: 0; border-bottom: 1px solid var(--border); }
+  .lib-list > .list-row:nth-child(odd), .words-list > .list-row:nth-child(odd) { border-right: 1px solid var(--border); }
+
+  /* Writing feedback: four criteria in one row */
+  .criteria { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
+  /* Review / sort cards: not too wide on a big screen */
+  .flash-wrap, .review-top, .grade-row, .swipe-row, .sort-actions { max-width: 620px; margin-left: auto; margin-right: auto; }
+}
+
+/* Mouse users: gentle hover feedback (touch screens are not affected) */
+@media (hover: hover) and (pointer: fine) {
+  .card-link:hover { box-shadow: var(--shadow); transform: translateY(-1px); }
+  .list-row:hover, a.task:hover { background: var(--surface-2); }
+  .chip:hover { border-color: var(--primary); color: var(--text); }
+  .option:hover { background: var(--surface-2); }
+}

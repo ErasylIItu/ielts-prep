@@ -92,7 +92,7 @@ export async function render(root) {
       mount(host, emptyState({ iconName: 'search', title: t('No words found'), text: t('Try another filter or search.') }));
       return;
     }
-    mount(host, html`<div class="list">${list.map((w) => html`
+    mount(host, html`<div class="list words-list">${list.map((w) => html`
       <a class="list-row" href="#/vocab/word/${encodeURIComponent(w.id)}">
         <span class="dot dot--${w.status}" aria-label="${t(w.status)}"></span>
         <div class="list-row__main">

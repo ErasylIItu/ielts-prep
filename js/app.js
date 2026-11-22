@@ -54,12 +54,26 @@ function match(path) {
   return null;
 }
 
+// Extra items shown only in the laptop sidebar (on phones they are reached from Today).
+const SIDE_EXTRA = [
+  ['analytics', 'Analytics', 'chart'],
+  ['settings', 'Settings', 'settings'],
+];
+
 function renderNav(section) {
-  const nav = document.getElementById('nav');
-  mount(nav, NAV.map(([id, label, iconName]) => html`<li>
-    <a class="nav__link" href="#/${id}" ${section === id ? html`aria-current="page"` : ''}>
+  // Phone bottom bar: Analytics and Settings belong to Today.
+  const bottom = ['analytics', 'settings'].includes(section) ? 'today' : section;
+  mount(document.getElementById('nav'), NAV.map(([id, label, iconName]) => html`<li>
+    <a class="nav__link" href="#/${id}" ${bottom === id ? html`aria-current="page"` : ''}>
       <span class="nav__pill">${ic(iconName, 22)}</span>${t(label)}
     </a></li>`));
+  // Laptop sidebar: every section, the current one highlighted.
+  const side = document.getElementById('sidebar-nav');
+  if (side) {
+    const item = ([id, label, iconName]) => html`<li>
+      <a class="sidebar__link" href="#/${id}" ${section === id ? html`aria-current="page"` : ''}>${ic(iconName, 20)}<span>${t(label)}</span></a></li>`;
+    mount(side, html`${NAV.map(item)}<li class="sidebar__sep" role="separator"></li>${SIDE_EXTRA.map(item)}`);
+  }
 }
 
 async function route() {
@@ -68,7 +82,7 @@ async function route() {
   const query = Object.fromEntries(new URLSearchParams(qs || ''));
   const m = match(path) || match('/today');
   const section = path.split('/')[1] || 'today';
-  renderNav(['analytics', 'settings'].includes(section) ? 'today' : section);
+  renderNav(section);
 
   const token = ++renderToken;
   if (typeof cleanup === 'function') { try { cleanup(); } catch { /* ignore */ } }

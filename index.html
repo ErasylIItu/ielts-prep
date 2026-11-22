@@ -30,6 +30,14 @@
 </head>
 <body>
   <div class="app">
+    <!-- Laptop / desktop navigation (hidden on phones, where the bottom bar is used) -->
+    <aside class="sidebar" aria-label="Main">
+      <a class="sidebar__brand" href="#/today">
+        <img src="icons/icon.svg" alt="" width="34" height="34">
+        <span>IELTS Prep</span>
+      </a>
+      <nav><ul class="sidebar__list" id="sidebar-nav"></ul></nav>
+    </aside>
     <main id="view" class="view" tabindex="-1">
       <div class="view__inner" aria-busy="true">
         <div class="card skel-card"><div class="skel skel--title"></div><div class="skel skel--line" style="width:80%"></div><div class="skel skel--line" style="width:60%"></div></div>
