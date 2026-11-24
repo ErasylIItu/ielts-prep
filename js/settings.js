@@ -16,7 +16,7 @@ export const DEFAULTS = {
     reading: 'gemini-3.5-flash-lite',
     writing: 'gemini-3.5-flash-lite', // change to the model you prefer for essays
     speaking: 'gemini-3.5-flash-lite', // must accept audio input
-    fallback: 'gemini-3.1-flash-lite',
+    fallback: 'gemini-flash-lite-latest',
   },
   lastBackup: '',           // ISO timestamp of the last export
   backupReminderSnoozed: '', // day key when the reminder was dismissed

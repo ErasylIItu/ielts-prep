@@ -208,7 +208,17 @@ export async function topicOfDay() {
   if (log.topicOfDay && byId.has(log.topicOfDay)) return byId.get(log.topicOfDay);
 
   const recent = (t, n) => t.lastDone && diffDays(t.lastDone, day) < n;
+  // Topics suggested on the last 3 days but not studied: don't offer the same one again and again.
+  const skipped = new Set();
+  for (let i = 1; i <= 3; i++) {
+    const l = await getLog(addDays(day, -i));
+    if (l.topicOfDay && !l.topicDone) skipped.add(l.topicOfDay);
+  }
   const open = topics.filter((t) => t.status !== 'known');
+  const fresh = open.filter((t) => !skipped.has(t.id));
+  // Untouched topics: B1 first, then B2, then the A2 basics (the course is aimed at B1 → B2).
+  const LEVEL_RANK = { B1: 0, B2: 1, A2: 2 };
+  const byLevel = (a, b) => (LEVEL_RANK[a.level] ?? 3) - (LEVEL_RANK[b.level] ?? 3) || a.order - b.order;
   let pick = null;
 
   const pinned = byId.get(settings().pinnedTopic);
@@ -216,11 +226,12 @@ export async function topicOfDay() {
   if (!pick && log.plannedFocus?.topicId && byId.has(log.plannedFocus.topicId)) pick = byId.get(log.plannedFocus.topicId);
   if (!pick) {
     const errs = await topicErrorCounts(14);
-    const ranked = open.filter((t) => (errs[t.id] || 0) >= 2 && !recent(t, 2)).sort((a, b) => errs[b.id] - errs[a.id] || a.order - b.order);
+    const ranked = fresh.filter((t) => (errs[t.id] || 0) >= 2 && !recent(t, 2)).sort((a, b) => errs[b.id] - errs[a.id] || a.order - b.order);
     pick = ranked[0] || null;
   }
-  if (!pick) pick = open.find((t) => t.status === 'weak' && !recent(t, 3)) || null;
-  if (!pick) pick = open.find((t) => t.timesDone === 0) || null;
+  if (!pick) pick = fresh.find((t) => t.status === 'weak' && !recent(t, 3)) || null;
+  if (!pick) pick = fresh.filter((t) => t.timesDone === 0).sort(byLevel)[0] || null;
+  if (!pick) pick = open.filter((t) => t.timesDone === 0).sort(byLevel)[0] || null;
   if (!pick) pick = [...open].sort((a, b) => (a.correct / (a.answers || 1)) - (b.correct / (b.answers || 1)))[0] || topics[0] || null;
 
   if (pick) await updateLog((l) => { l.topicOfDay = pick.id; });

@@ -74,6 +74,7 @@ export default {
   'Weak': 'Слабая',
   'OK': 'Норм',
   'Got it': 'Понятно',
+  'Google is busy, trying again…': 'Google перегружен, пробую ещё раз…',
   '{name}, natural voice': '{name}, живой голос',
   'Voice of your device': 'Голос вашего устройства',
 

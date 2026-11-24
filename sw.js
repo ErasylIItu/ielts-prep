@@ -2,7 +2,7 @@
 // (network-first with cache fallback, used in stage 3). Gemini requests are never cached here —
 // AI answers are cached in IndexedDB by the app itself.
 // Bump VERSION whenever any file changes so users get the update prompt.
-const VERSION = 'v1.9.2';
+const VERSION = 'v1.9.3';
 const SHELL = `shell-${VERSION}`;
 const TEXTS = 'texts-v1';
 // Recorded examiner clips: kept across app versions, downloaded when first played.

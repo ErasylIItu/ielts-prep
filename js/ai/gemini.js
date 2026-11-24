@@ -39,6 +39,9 @@ const E = {
 
 const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
+// Tried in this order after the section's model and the fallback from settings.
+const EXTRA_FALLBACKS = ['gemini-flash-lite-latest', 'gemini-3.5-flash'];
+
 /** Parse "retryDelay": "17s" from a Google error body. */
 function retryDelayMs(body) {
   const info = body?.error?.details?.find((d) => String(d['@type'] || '').includes('RetryInfo'));
@@ -126,7 +129,8 @@ export async function ai({ section, task, cacheKey, force = false, onStatus }) {
   if (navigator.onLine === false) throw E.offline();
 
   const s = settings();
-  const models = [...new Set([s.models[section], s.models.fallback].filter(Boolean))];
+  // Extra fallbacks: if Google is overloaded on one model, another one usually answers.
+  const models = [...new Set([s.models[section], s.models.fallback, ...EXTRA_FALLBACKS].filter(Boolean))];
   let modelIdx = 0;
   let parseFails = 0, rateRetries = 0, serverRetries = 0;
 
@@ -173,7 +177,7 @@ export async function ai({ section, task, cacheKey, force = false, onStatus }) {
         throw E.model(model);
       }
       if (http >= 500) {
-        if (serverRetries < 1) { serverRetries++; await sleep(2000); continue; }
+        if (serverRetries < 1) { serverRetries++; onStatus?.(t('Google is busy, trying again…')); await sleep(1500); continue; }
         if (modelIdx < models.length - 1) { modelIdx++; serverRetries = 0; continue; }
         throw E.server();
       }
