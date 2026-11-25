@@ -129,6 +129,7 @@ export async function render(root, _p, query) {
     }));
     const run = root.querySelector('[data-run]');
     runExercises(run, items, {
+      taps: false,
       onAnswer: (item, ok) => logPractice(item.word, ok, mode),
       onDone: (results) => {
         const ok = results.filter((r) => r.correct).length;

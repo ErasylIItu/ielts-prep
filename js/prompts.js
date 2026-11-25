@@ -121,7 +121,22 @@ const EXERCISE_RULES = `Exercise types:
 - "rewrite": "question" = instruction + sentence, e.g. "Rewrite using the passive: People speak English here." "answer" = full rewritten sentence. "options" = [].
 For gap/correct/rewrite put 1–4 other fully correct variants in "accepted" (contractions, alternative word order). For mc/contrast "accepted" = [].
 explanationRu / explanationKz: 1–2 short sentences: why this answer is right (and why the typical wrong one is wrong).
-Use topics typical for IELTS (education, environment, technology, health, work, cities, society).`;
+Topics: everyday life and, for B1+ topics, typical IELTS themes (education, environment, technology, health, work, cities, society).`;
+
+/**
+ * Vocabulary limit for grammar material: the words must not be harder than the grammar.
+ * A learner who studies an A2 topic must understand every word of the examples.
+ */
+function vocabRule(level) {
+  if (level === 'A2') return `VOCABULARY LEVEL (strict): this is an A2 (elementary / pre-intermediate) topic.
+- Use ONLY very common A1–A2 words: family, friends, home, school, work, food, shops, weather, sport, hobbies, travel, daily routine.
+- Short simple sentences (5–12 words). No academic or IELTS vocabulary, no idioms, no phrasal verbs above A2, no rare words.
+- If a word might be unknown to an A2 learner, replace it with an easier one. Ignore any other rule about "IELTS topics" or "academic" examples.`;
+  if (level === 'B1') return `VOCABULARY LEVEL: this is a B1 (intermediate) topic.
+- Use A1–B1 words only; everyday and simple study/work topics. Sentences up to about 15 words.
+- Avoid B2/C1 academic vocabulary and idioms. The grammar must be the only new thing.`;
+  return `VOCABULARY LEVEL: this is a ${level} topic. Use words up to B2; IELTS-style topics are fine, but avoid rare C1/C2 words.`;
+}
 
 function checkExercises(list) {
   for (const [i, e] of list.entries()) {
@@ -149,7 +164,10 @@ export function grammarLesson(topic) {
 3. exercises: exactly 10, mixing all types (at least 3 mc, 2 gap, 2 correct, 1 rewrite, 2 contrast). Order from easier to harder.
 4. test: exactly 5 new questions for a mini-test (types mc, gap or contrast), different from the exercises.
 
-${EXERCISE_RULES}`,
+${EXERCISE_RULES}
+
+${vocabRule(topic.level)}
+The same vocabulary limit applies to the examples, exercises, test and the English parts of "mistakes".`,
     schema: S('OBJECT', {
       properties: {
         explanation: S('OBJECT', {
@@ -182,7 +200,9 @@ ${mistakes.map((m, i) => `${i + 1}. Question: ${m.question} | Correct answer: ${
 Write exactly ${mistakes.length} NEW exercises, one for each mistake above and in the same order, that test the same grammar point with a different sentence.
 Prefer types mc, gap and correct.
 
-${EXERCISE_RULES}`,
+${EXERCISE_RULES}
+
+${vocabRule(topic.level)}`,
     schema: S('OBJECT', { properties: { exercises: S('ARRAY', { items: EXERCISE }) }, required: ['exercises'] }),
     check: (d) => (d.exercises.length !== mistakes.length ? 'wrong number of exercises' : checkExercises(d.exercises)),
     temperature: 0.6,

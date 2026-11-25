@@ -74,6 +74,7 @@ export default {
   'Weak': 'Слабая',
   'OK': 'Норм',
   'Got it': 'Понятно',
+  'Tap any English word to see its translation.': 'Нажми на любое английское слово, чтобы увидеть перевод.',
   'Google is busy, trying again…': 'Google перегружен, пробую ещё раз…',
   '{name}, natural voice': '{name}, живой голос',
   'Voice of your device': 'Голос вашего устройства',

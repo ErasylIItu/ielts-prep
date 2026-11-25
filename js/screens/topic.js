@@ -1,6 +1,7 @@
 // Grammar topic: AI explanation (RU / KZ), examples, 10 exercises, 5-question mini-test.
 import { html, mount, ic, header, skeleton, renderError, emptyState, toast, confirmDialog, confetti, doneMark, pct } from '../ui/components.js';
 import { runExercises } from '../ui/exercise.js';
+import { tappable, bindWordTaps } from '../ui/word-lookup.js';
 import { getTopic, loadLesson, recordAnswer, finishSession, setStatus, setTopicOfDay, nextReviewMap, deleteCustomTopic, statusFromAccuracy } from '../grammar/state.js';
 import { groupTitle } from '../grammar-topics.js';
 import { setSetting, settings } from '../settings.js';
@@ -62,9 +63,11 @@ export async function render(host, { id }, query) {
         ${e.tipRu ? html`<p class="focus-note">${ic('bolt', 18)} <span>${e.tipRu}</span></p>` : ''}
       </article>
       <h2 class="section-title">${t('Examples')}</h2>
-      <div class="card stack">${c.examples.map((x) => html`<div><p class="example">${x.en}</p><p class="example__tr">${x.ru}</p>${x.kz ? html`<p class="example__tr faint">${x.kz}</p>` : ''}</div>`)}</div>
+      <p class="hint">${t('Tap any English word to see its translation.')}</p>
+      <div class="card stack" data-taps>${c.examples.map((x) => html`<div><p class="example" lang="en" data-sent="${x.en}">${tappable(x.en)}</p><p class="example__tr">${x.ru}</p>${x.kz ? html`<p class="example__tr faint">${x.kz}</p>` : ''}</div>`)}</div>
       <button class="btn btn--primary btn--block mt-l" data-start>${ic('play', 18)} ${t('Start {n} exercises', { n: c.exercises.length })}</button>
       ${topic.timesDone ? html`<button class="btn btn--ghost btn--block mt-s" data-test-only>${t('Mini-test only ({n})', { n: c.test.length })}</button>` : ''}`);
+    bindWordTaps(body.querySelector('[data-taps]'));
     body.querySelector('[data-start]').addEventListener('click', () => practise(c, true));
     body.querySelector('[data-test-only]')?.addEventListener('click', () => practise(c, false));
   };

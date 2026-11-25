@@ -1,10 +1,8 @@
 // Reading passage + IELTS-style questions. Tap any word → meaning in context + "Add to Vocab".
 // After "Check answers": score, explanation (RU / KZ) and "Show in text" for every question.
 import { html, mount, ic, header, emptyState, esc, raw, openSheet, toast, confetti, confirmDialog, skeleton, renderError } from '../ui/components.js';
-import { getText, saveAttempt, isRight, deleteText, lookupWord } from '../reading/state.js';
-import { ai } from '../ai/gemini.js';
-import { wordCard } from '../prompts.js';
-import { cardToWord, addWord, findWord, normKey } from '../words.js';
+import { getText, saveAttempt, isRight, deleteText } from '../reading/state.js';
+import { tappable, wordSheet } from '../ui/word-lookup.js';
 import { inFlow, flowNext, flowLabel } from '../flow.js';
 import { t } from '../i18n.js';
 
@@ -15,12 +13,6 @@ const GROUPS = [
   ['gap', 'Sentence completion', 'Complete the sentences. Use NO MORE THAN TWO WORDS from the passage.'],
   ['heading', 'Matching headings', 'Choose the correct heading for each paragraph.'],
 ];
-
-/** Paragraph text → HTML with every word in a tappable span (all text escaped). */
-function tappable(text) {
-  return raw(text.split(/([A-Za-z][A-Za-z'’-]*[A-Za-z]|[A-Za-z])/).map((part, i) =>
-    i % 2 ? `<span class="w" data-w="${esc(part)}">${esc(part)}</span>` : esc(part)).join(''));
-}
 
 /** Sentence of a paragraph that contains the tapped word span. */
 function sentenceFor(span, paragraphs) {
@@ -235,56 +227,4 @@ function markQuote(container, quote) {
       return;
     }
   }
-}
-
-/** Bottom sheet with the word's meaning in context and "Add to Vocab". */
-function wordSheet(word, sentence, onClose) {
-  const { el, close, closed } = openSheet(html`<div data-body>${skeleton(3, { card: false })}</div>`, { label: word });
-  closed.then(onClose);
-  const body = el.querySelector('[data-body]');
-  const load = async () => {
-    mount(body, html`<p class="flash__word" style="font-size:1.75rem">${word}</p><p class="small muted serif">${sentence}</p>${skeleton(3, { card: false })}`);
-    try {
-      const info = await lookupWord(word, sentence);
-      const existing = await findWord(info.lemma);
-      mount(body, html`
-        <div class="row between"><p class="flash__word" style="font-size:1.75rem">${info.lemma}</p>
-          <button class="icon-btn" data-close aria-label="${t('Close')}">${ic('x')}</button></div>
-        <div class="row gap-s wrap mt-s"><span class="badge">${info.pos}</span><span class="badge badge--cefr">${info.cefr}</span>
-          ${normKey(info.lemma) !== normKey(word) ? html`<span class="badge">${word}</span>` : ''}</div>
-        <div class="stack-s mt-m">
-          <p class="tr-line"><span class="tr-lang">RU</span><span class="tr-ru">${info.ru}</span></p>
-          <p class="tr-line"><span class="tr-lang">KZ</span><span class="tr-kz">${info.kz}</span></p>
-          ${info.noteRu ? html`<p class="small muted">${info.noteRu}</p>` : ''}
-          <p class="example mt-s">${sentence}</p>
-        </div>
-        <div class="row gap-s mt-l">
-          ${existing
-            ? html`<a class="btn btn--soft grow" href="#/vocab/word/${existing.id}" data-close>${ic('check', 18)} ${t('Already in Vocab')}</a>`
-            : html`<button class="btn btn--primary grow" data-add>${ic('plus', 18)} ${t('Add to Vocab')}</button>`}
-          <button class="btn btn--ghost" data-close>${t('Close')}</button>
-        </div>`);
-      body.querySelectorAll('[data-close]').forEach((b) => b.addEventListener('click', () => close()));
-      body.querySelector('[data-add]')?.addEventListener('click', async (e) => {
-        const btn = e.currentTarget;
-        btn.disabled = true;
-        btn.textContent = t('Creating the card…');
-        let w;
-        try {
-          const card = await ai({ section: 'vocab', task: wordCard(info.lemma), cacheKey: `card:${normKey(info.lemma)}` });
-          w = cardToWord(card, 'reading');
-          w.examples.unshift({ en: sentence, ru: '', kz: '' });
-        } catch {
-          // AI card failed → save what we already know
-          w = cardToWord({ word: info.lemma, pos: info.pos, cefr: info.cefr, ru: info.ru, kz: info.kz, examples: [{ en: sentence, ru: '', kz: '' }] }, 'reading');
-        }
-        const { duplicate } = await addWord(w);
-        toast(duplicate ? t('"{w}" is already in your list', { w: w.word }) : t('Added to Vocab: {w}', { w: w.word }));
-        close();
-      });
-    } catch (err) {
-      renderError(body, err, load);
-    }
-  };
-  load();
 }

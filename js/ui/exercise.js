@@ -1,6 +1,7 @@
 // Exercise runner shared by grammar lessons, mini-tests, reviews and the diagnostic.
 // Shows one item at a time with instant feedback (RU first, KZ second).
 import { html, mount, ic, esc, raw } from './components.js';
+import { tappable, bindWordTaps } from './word-lookup.js';
 import { t } from '../i18n.js';
 
 const TYPE_LABEL = {
@@ -35,18 +36,19 @@ const shuffle = (arr) => {
   return a;
 };
 
-/** Render "___" as a visible blank. */
-function questionHtml(q) {
-  return raw(esc(q).replace(/_{2,}/g, '<span class="blank" aria-label="blank">_____</span>'));
-}
+/** Question with a visible blank; every English word can be tapped for a translation. */
+const questionHtml = (q) => tappable(q, { blank: true });
+const plainQuestion = (q) => raw(esc(q).replace(/_{2,}/g, '<span class="blank" aria-label="blank">_____</span>'));
 
 /**
  * @param {HTMLElement} root
  * @param {Array} items exercises from prompts.js
  * @param {{ onAnswer?:(item, correct, given)=>Promise|void, onDone:(results)=>void, label?:string }} opts
  */
-export function runExercises(root, items, { onAnswer, onDone, label = '' }) {
+export function runExercises(root, items, { onAnswer, onDone, label = '', taps = true }) {
   const results = [];
+  // Tap a word for its translation (off in Vocab practice: it would give the answer away).
+  if (taps && !root.dataset.taps) { root.dataset.taps = '1'; bindWordTaps(root); }
   let i = 0;
 
   const show = () => {
@@ -61,7 +63,7 @@ export function runExercises(root, items, { onAnswer, onDone, label = '' }) {
       </div>
       <div class="card stack mt-m">
         <p class="ex-type">${label ? `${label} · ` : ''}${t(TYPE_LABEL[item.type] || 'Exercise')}</p>
-        <p class="ex-q">${questionHtml(item.question)}</p>
+        <p class="ex-q" lang="en" data-sent="${item.question}">${taps ? questionHtml(item.question) : plainQuestion(item.question)}</p>
         ${choice
           ? html`<div class="options" role="group" aria-label="${t('Options')}">${options.map((o) => html`<button class="option" data-opt="${o}">${o}</button>`)}</div>`
           : html`<form class="stack-s" data-form>

@@ -83,15 +83,19 @@ export async function moveTopic(list, id, dir) {
 
 // ---------- Lesson content (AI, cached on the topic) ----------
 
+// v2: vocabulary matches the topic level. Older lessons are made again when opened.
+const LESSON_V = 2;
+
 export async function loadLesson(topic, { force = false, onStatus } = {}) {
-  if (topic.content && !force) return topic.content;
+  if (topic.content && topic.content.v === LESSON_V && !force) return topic.content;
   const content = await ai({
     section: 'grammar',
     task: grammarLesson(topic),
-    cacheKey: `lesson:${topic.id}:${hashKey(topic.title)}`,
+    cacheKey: `lesson${LESSON_V}:${topic.id}:${hashKey(topic.title)}`,
     force,
     onStatus,
   });
+  content.v = LESSON_V;
   topic.content = content;
   topic.generatedAt = Date.now();
   await saveTopic(topic);

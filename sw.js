@@ -2,7 +2,7 @@
 // (network-first with cache fallback, used in stage 3). Gemini requests are never cached here —
 // AI answers are cached in IndexedDB by the app itself.
 // Bump VERSION whenever any file changes so users get the update prompt.
-const VERSION = 'v1.9.3';
+const VERSION = 'v1.10.0';
 const SHELL = `shell-${VERSION}`;
 const TEXTS = 'texts-v1';
 // Recorded examiner clips: kept across app versions, downloaded when first played.
@@ -20,7 +20,7 @@ const ASSETS = [
   'js/planner.js', 'js/flow.js', 'js/prompts.js', 'js/grammar-topics.js', 'js/i18n.js', 'js/i18n-ru.js',
   'js/ai/gemini.js', 'js/ai/validate.js',
   'js/grammar/state.js',
-  'js/ui/components.js', 'js/ui/icons.js', 'js/ui/swipe.js', 'js/ui/exercise.js', 'js/ui/word-form.js',
+  'js/ui/components.js', 'js/ui/icons.js', 'js/ui/swipe.js', 'js/ui/exercise.js', 'js/ui/word-form.js', 'js/ui/word-lookup.js',
   'js/screens/today.js', 'js/screens/analytics.js', 'js/screens/settings.js',
   'js/screens/vocab.js', 'js/screens/word-add.js', 'js/screens/word-import.js', 'js/screens/word-detail.js',
   'js/screens/review.js', 'js/screens/practice.js',
